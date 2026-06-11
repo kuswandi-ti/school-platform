@@ -1,0 +1,76 @@
+openapi: 3.1.0
+info:
+  title: school-platform API Gateway
+  version: 0.1.0
+  description: Minimal Sprint 0 OpenAPI skeleton for the external REST API Gateway.
+servers:
+  - url: http://localhost:8080
+    description: Local development
+paths:
+  /healthz:
+    get:
+      operationId: getHealthz
+      summary: Health check
+      responses:
+        "200":
+          description: Service is alive.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardResponse"
+  /readyz:
+    get:
+      operationId: getReadyz
+      summary: Readiness check
+      responses:
+        "200":
+          description: Service is ready.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardResponse"
+  /api/v1/ping:
+    get:
+      operationId: getApiV1Ping
+      summary: Ping API Gateway
+      responses:
+        "200":
+          description: API Gateway ping response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardResponse"
+components:
+  schemas:
+    StandardResponse:
+      type: object
+      required:
+        - data
+        - meta
+        - error
+      properties:
+        data:
+          description: Response payload.
+        meta:
+          description: Pagination or response metadata.
+          nullable: true
+        error:
+          anyOf:
+            - $ref: "#/components/schemas/ErrorBody"
+            - type: "null"
+    ErrorBody:
+      type: object
+      required:
+        - code
+        - message
+        - details
+      properties:
+        code:
+          type: string
+          example: VALIDATION_ERROR
+        message:
+          type: string
+          example: Data yang dikirim tidak valid.
+        details:
+          description: Structured error details.
+          nullable: true
