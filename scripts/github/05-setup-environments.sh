@@ -10,7 +10,7 @@ create_environment() {
   gh api \
     --method PUT \
     -H "Accept: application/vnd.github+json" \
-    "/repos/$GITHUB_OWNER/$REPO_NAME/environments/$env_name" \
+    "repos/$GITHUB_OWNER/$REPO_NAME/environments/$env_name" \
     --input - <<EOF
 {}
 EOF
@@ -21,13 +21,13 @@ create_environment "production"
 
 if [ -n "${PRODUCTION_REVIEWER_USER:-}" ]; then
   echo "Resolving reviewer user id for $PRODUCTION_REVIEWER_USER"
-  reviewer_id="$(gh api "/users/$PRODUCTION_REVIEWER_USER" --jq '.id')"
+  reviewer_id="$(gh api "users/$PRODUCTION_REVIEWER_USER" --jq '.id')"
 
   echo "Setting production required reviewer"
   gh api \
     --method PUT \
     -H "Accept: application/vnd.github+json" \
-    "/repos/$GITHUB_OWNER/$REPO_NAME/environments/production" \
+    "repos/$GITHUB_OWNER/$REPO_NAME/environments/production" \
     --input - <<EOF
 {
   "wait_timer": 0,

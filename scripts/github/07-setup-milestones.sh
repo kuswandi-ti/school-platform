@@ -10,13 +10,13 @@ create_milestone() {
   local title="$1"
   local description="$2"
 
-  if gh api "/repos/$REPO/milestones?state=all" --jq '.[].title' | grep -Fx "$title" >/dev/null 2>&1; then
+  if gh api "repos/$REPO/milestones?state=all" --jq '.[].title' | grep -Fx "$title" >/dev/null 2>&1; then
     echo "Milestone already exists: $title"
   else
     gh api \
       --method POST \
       -H "Accept: application/vnd.github+json" \
-      "/repos/$REPO/milestones" \
+      "repos/$REPO/milestones" \
       -f title="$title" \
       -f description="$description"
   fi

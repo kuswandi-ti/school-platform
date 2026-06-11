@@ -87,6 +87,7 @@ scripts/github/
 > - Jalankan dari mesin lokal yang sudah login ke GitHub CLI.
 > - Untuk branch protection dan environments, akun GitHub harus memiliki permission admin pada repository.
 > - Untuk GitHub Project v2, beberapa konfigurasi view mungkin tetap perlu diselesaikan manual melalui UI GitHub karena dukungan CLI/API dapat berbeda tergantung akun/organisasi.
+> - Saat menggunakan Git Bash di Windows, endpoint `gh api` ditulis tanpa slash depan, misalnya `repos/$GITHUB_OWNER/$REPO_NAME/...`, agar shell tidak mengubahnya menjadi path filesystem.
 
 ---
 
@@ -499,12 +500,12 @@ Create environments:
 gh api \
   --method PUT \
   -H "Accept: application/vnd.github+json" \
-  "/repos/$GITHUB_OWNER/$REPO_NAME/environments/staging"
+  "repos/$GITHUB_OWNER/$REPO_NAME/environments/staging"
 
 gh api \
   --method PUT \
   -H "Accept: application/vnd.github+json" \
-  "/repos/$GITHUB_OWNER/$REPO_NAME/environments/production"
+  "repos/$GITHUB_OWNER/$REPO_NAME/environments/production"
 ```
 
 Script:
@@ -926,8 +927,8 @@ Setelah setup selesai:
 ```bash
 gh repo view "$GITHUB_OWNER/$REPO_NAME"
 gh label list --repo "$GITHUB_OWNER/$REPO_NAME"
-gh api "/repos/$GITHUB_OWNER/$REPO_NAME/branches/main/protection"
-gh api "/repos/$GITHUB_OWNER/$REPO_NAME/environments"
+gh api "repos/$GITHUB_OWNER/$REPO_NAME/branches/main/protection"
+gh api "repos/$GITHUB_OWNER/$REPO_NAME/environments"
 gh project list --owner "$GITHUB_OWNER"
 ```
 

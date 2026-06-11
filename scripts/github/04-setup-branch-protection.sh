@@ -13,7 +13,7 @@ setup_branch_protection() {
   gh api \
     --method PUT \
     -H "Accept: application/vnd.github+json" \
-    "/repos/$GITHUB_OWNER/$REPO_NAME/branches/$branch/protection" \
+    "repos/$GITHUB_OWNER/$REPO_NAME/branches/$branch/protection" \
     --input - <<EOF
 {
   "required_status_checks": null,
