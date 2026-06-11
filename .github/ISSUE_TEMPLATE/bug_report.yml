@@ -1,0 +1,156 @@
+name: Bug Report
+description: Report a bug, regression, or unexpected behavior
+title: '[Bug]: '
+labels:
+- 'type: bug'
+- 'status: ready'
+body:
+- type: markdown
+  attributes:
+    value: Use this template for bugs found during development, QA, UAT, or production validation.
+- type: dropdown
+  id: severity
+  attributes:
+    label: Severity
+    options:
+    - critical
+    - high
+    - medium
+    - low
+    description: Critical/High bugs in MVP core flows block release.
+  validations:
+    required: true
+- type: dropdown
+  id: area
+  attributes:
+    label: Area
+    options:
+    - api-gateway
+    - identity
+    - school-core
+    - admission
+    - academic
+    - finance
+    - communication
+    - reporting
+    - web-admin
+    - mobile
+    - infra
+    - docs
+    - security
+    - observability
+    - ci-cd
+    - file-management
+  validations:
+    required: true
+- type: input
+  id: environment
+  attributes:
+    label: Environment
+    placeholder: local / staging / production
+  validations:
+    required: true
+- type: input
+  id: sprint
+  attributes:
+    label: Sprint / Milestone
+    placeholder: Sprint N — ...
+  validations:
+    required: false
+- type: textarea
+  id: summary
+  attributes:
+    label: Bug Summary
+    description: What is the bug?
+    placeholder: Explain the bug briefly.
+  validations:
+    required: true
+- type: textarea
+  id: steps
+  attributes:
+    label: Steps to Reproduce
+    placeholder: '1. Go to ...
+
+      2. Click ...
+
+      3. Submit ...
+
+      4. See error ...'
+  validations:
+    required: true
+- type: textarea
+  id: expected
+  attributes:
+    label: Expected Result
+    placeholder: What should happen?
+  validations:
+    required: true
+- type: textarea
+  id: actual
+  attributes:
+    label: Actual Result
+    placeholder: What actually happened?
+  validations:
+    required: true
+- type: textarea
+  id: evidence
+  attributes:
+    label: Evidence
+    description: Add screenshots, logs, request_id, correlation_id, video, or error trace.
+    placeholder: 'Screenshot/video:
+
+      request_id:
+
+      correlation_id:
+
+      logs:'
+  validations:
+    required: false
+- type: textarea
+  id: impact
+  attributes:
+    label: Impact
+    description: Who or what is affected?
+    placeholder: 'Affected users/roles:
+
+      Affected module:
+
+      Data impact:
+
+      Release blocking: yes/no'
+  validations:
+    required: true
+- type: textarea
+  id: technical_notes
+  attributes:
+    label: Technical Notes
+    description: Fill if known.
+    placeholder: 'Suspected service/app:
+
+      Suspected endpoint:
+
+      Database/event impact:
+
+      Permission/scope impact:
+
+      Related PR/commit:'
+  validations:
+    required: false
+- type: checkboxes
+  id: sensitive_data
+  attributes:
+    label: Sensitive Data Check
+    options:
+    - label: This report does not expose passwords, tokens, secrets, or Confidential data
+      required: true
+    - label: Screenshots/logs have been sanitized if needed
+- type: checkboxes
+  id: release_blocking
+  attributes:
+    label: Release Blocking Check
+    options:
+    - label: This affects an MVP core flow
+    - label: This affects finance/payment data
+    - label: This affects authentication/authorization
+    - label: This affects data privacy/security
+    - label: This blocks QA/UAT sign-off

@@ -1,0 +1,156 @@
+name: Security Review
+description: Request or track a security/privacy review
+title: '[Security Review]: '
+labels:
+- 'type: security'
+- 'review: security'
+- 'status: needs-review'
+body:
+- type: markdown
+  attributes:
+    value: Use this template for security, privacy, permission, audit, file access, or data exposure reviews.
+- type: dropdown
+  id: review_type
+  attributes:
+    label: Review Type
+    options:
+    - authentication
+    - authorization
+    - object-level-access
+    - permission-scope
+    - file-privacy
+    - audit-log
+    - finance-security
+    - data-privacy
+    - secrets-management
+    - api-security
+    - ci-cd-security
+    - production-readiness
+  validations:
+    required: true
+- type: dropdown
+  id: severity
+  attributes:
+    label: Severity / Risk
+    options:
+    - critical
+    - high
+    - medium
+    - low
+  validations:
+    required: true
+- type: dropdown
+  id: area
+  attributes:
+    label: Area
+    options:
+    - api-gateway
+    - identity
+    - school-core
+    - admission
+    - academic
+    - finance
+    - communication
+    - reporting
+    - web-admin
+    - mobile
+    - infra
+    - docs
+    - security
+    - observability
+    - ci-cd
+    - file-management
+  validations:
+    required: true
+- type: textarea
+  id: review_scope
+  attributes:
+    label: Review Scope
+    description: What must be reviewed?
+    placeholder: 'Service/app:
+
+      Endpoint/feature:
+
+      Data involved:
+
+      User roles involved:
+
+      Files involved:'
+  validations:
+    required: true
+- type: textarea
+  id: threat_or_concern
+  attributes:
+    label: Threat / Concern
+    placeholder: Explain the potential issue or what needs validation.
+  validations:
+    required: true
+- type: textarea
+  id: sensitive_data
+  attributes:
+    label: Sensitive Data Involved
+    placeholder: 'Data classification:
+
+      - Public / Internal / Restricted / Confidential
+
+
+      Data types:
+
+      - student data
+
+      - parent data
+
+      - teacher data
+
+      - finance data
+
+      - documents/files
+
+      - credentials/tokens'
+  validations:
+    required: true
+- type: checkboxes
+  id: checklist
+  attributes:
+    label: Security Checklist
+    options:
+    - label: Authentication behavior reviewed
+    - label: RBAC permission reviewed
+    - label: ABAC/scope reviewed
+    - label: Object-level authorization reviewed
+    - label: Cross-foundation/school data leakage reviewed
+    - label: Sensitive fields are masked or protected
+    - label: Tokens/passwords/secrets are not logged
+    - label: File access is private and authorized
+    - label: Signed URL expiry is appropriate
+    - label: Audit log exists for sensitive action
+    - label: Event/notification payload does not expose Confidential data
+    - label: Rate limit exists for sensitive endpoint if needed
+    - label: SQL queries are parameterized/sqlc-safe
+    - label: Production secrets are not committed
+- type: textarea
+  id: evidence
+  attributes:
+    label: Evidence / Findings
+    placeholder: 'Finding:
+
+      Evidence:
+
+      Affected file/endpoint:
+
+      Recommendation:'
+  validations:
+    required: false
+- type: textarea
+  id: acceptance
+  attributes:
+    label: Acceptance Criteria
+    placeholder: '- [ ] Security review completed
+
+      - [ ] Findings documented
+
+      - [ ] Required fixes created as issues
+
+      - [ ] No Critical/High issue remains unresolved for release'
+  validations:
+    required: true

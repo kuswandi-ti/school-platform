@@ -1,0 +1,158 @@
+name: QA / UAT
+description: Create a QA/UAT test scenario, checklist, or sign-off task
+title: '[QA/UAT]: '
+labels:
+- 'review: qa'
+- 'status: needs-qa'
+body:
+- type: markdown
+  attributes:
+    value: Use this template for QA test cases, UAT checklist, regression scenarios, or QA sign-off tracking.
+- type: dropdown
+  id: qa_type
+  attributes:
+    label: QA/UAT Type
+    options:
+    - test-case
+    - regression-test
+    - uat-scenario
+    - bug-verification
+    - release-signoff
+    - production-smoke-test
+  validations:
+    required: true
+- type: input
+  id: sprint
+  attributes:
+    label: Sprint / Milestone
+    placeholder: Sprint N — ...
+  validations:
+    required: true
+- type: dropdown
+  id: area
+  attributes:
+    label: Area
+    options:
+    - api-gateway
+    - identity
+    - school-core
+    - admission
+    - academic
+    - finance
+    - communication
+    - reporting
+    - web-admin
+    - mobile
+    - infra
+    - docs
+    - security
+    - observability
+    - ci-cd
+    - file-management
+  validations:
+    required: true
+- type: dropdown
+  id: priority
+  attributes:
+    label: Priority
+    options:
+    - critical
+    - high
+    - medium
+    - low
+  validations:
+    required: true
+- type: textarea
+  id: scenario
+  attributes:
+    label: Scenario
+    description: What user flow or system behavior must be tested?
+    placeholder: 'Actor:
+
+      Preconditions:
+
+      Scenario summary:'
+  validations:
+    required: true
+- type: textarea
+  id: test_steps
+  attributes:
+    label: Test Steps
+    placeholder: '1. ...
+
+      2. ...
+
+      3. ...'
+  validations:
+    required: true
+- type: textarea
+  id: expected_result
+  attributes:
+    label: Expected Result
+    placeholder: 'Expected result:
+
+      Data changes:
+
+      Notification/event/audit expectations:'
+  validations:
+    required: true
+- type: textarea
+  id: test_data
+  attributes:
+    label: Test Data
+    placeholder: 'User/role:
+
+      Foundation/school:
+
+      Student/class:
+
+      Sample data:'
+  validations:
+    required: false
+- type: textarea
+  id: acceptance_criteria
+  attributes:
+    label: Acceptance Criteria
+    placeholder: '- [ ] ...
+
+      - [ ] ...'
+  validations:
+    required: true
+- type: checkboxes
+  id: qa_coverage
+  attributes:
+    label: QA Coverage
+    options:
+    - label: Positive flow tested
+    - label: Negative flow tested
+    - label: Permission/scope tested
+    - label: Object-level authorization tested
+    - label: Validation errors tested
+    - label: Audit log checked if relevant
+    - label: Event/notification checked if relevant
+    - label: File access checked if relevant
+    - label: Regression impact checked
+    - label: Mobile/web behavior checked if relevant
+- type: textarea
+  id: result
+  attributes:
+    label: QA Result / UAT Notes
+    placeholder: 'Status: passed / failed / blocked
+
+      Notes:
+
+      Bugs found:
+
+      Evidence:'
+  validations:
+    required: false
+- type: checkboxes
+  id: signoff
+  attributes:
+    label: Sign-off
+    options:
+    - label: QA passed
+    - label: UAT passed
+    - label: No Critical/High bug remains for this flow
+    - label: Ready for staging merge
+    - label: Ready for production release

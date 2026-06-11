@@ -1,0 +1,206 @@
+name: Feature Task
+description: Create a feature or implementation task for school-platform
+title: '[Feature]: '
+labels:
+- 'type: feature'
+- 'status: ready'
+body:
+- type: markdown
+  attributes:
+    value: 'Use this template for feature/task implementation work.
+
+
+      Before creating the issue, check:
+
+      - `AGENTS.md`
+
+      - `SKILLS.md`
+
+      - `docs/README.md`
+
+      - active sprint plan if available
+
+      - active sprint task prompt from `docs/13` through `docs/23`'
+- type: input
+  id: sprint
+  attributes:
+    label: Sprint / Milestone
+    description: 'Example: Sprint 0 — Project Foundation'
+    placeholder: Sprint N — ...
+  validations:
+    required: true
+- type: dropdown
+  id: area
+  attributes:
+    label: Area
+    options:
+    - api-gateway
+    - identity
+    - school-core
+    - admission
+    - academic
+    - finance
+    - communication
+    - reporting
+    - web-admin
+    - mobile
+    - infra
+    - docs
+    - security
+    - observability
+    - ci-cd
+    - file-management
+    description: Main module or area affected by this task
+  validations:
+    required: true
+- type: dropdown
+  id: priority
+  attributes:
+    label: Priority
+    options:
+    - critical
+    - high
+    - medium
+    - low
+  validations:
+    required: true
+- type: dropdown
+  id: risk
+  attributes:
+    label: Risk Level
+    options:
+    - low
+    - medium
+    - high
+    - breaking-change
+    - migration
+    - data-sensitive
+  validations:
+    required: true
+- type: input
+  id: estimate
+  attributes:
+    label: Estimate
+    description: 'Use relative estimate. Example: 1, 2, 3, 5, 8'
+    placeholder: '3'
+  validations:
+    required: false
+- type: textarea
+  id: objective
+  attributes:
+    label: Objective
+    description: What should this task achieve?
+    placeholder: Explain the goal of this feature/task.
+  validations:
+    required: true
+- type: textarea
+  id: scope
+  attributes:
+    label: Scope
+    description: What is included in this task?
+    placeholder: '- ...
+
+      - ...'
+  validations:
+    required: true
+- type: textarea
+  id: out_of_scope
+  attributes:
+    label: Out of Scope
+    description: What must not be done in this task?
+    placeholder: '- ...
+
+      - ...'
+  validations:
+    required: true
+- type: textarea
+  id: acceptance_criteria
+  attributes:
+    label: Acceptance Criteria
+    description: Checklist that must pass before this task can be considered done.
+    placeholder: '- [ ] ...
+
+      - [ ] ...
+
+      - [ ] ...'
+  validations:
+    required: true
+- type: textarea
+  id: technical_notes
+  attributes:
+    label: Technical Notes
+    description: Mention service/app, API, database, event, permission, audit, and test impact.
+    placeholder: 'Target service/app:
+
+      Data model impact:
+
+      API/gRPC/OpenAPI impact:
+
+      Event impact:
+
+      Permission/scope requirement:
+
+      Audit requirement:
+
+      File/privacy requirement:
+
+      Tests:'
+  validations:
+    required: false
+- type: textarea
+  id: ai_agent_instruction
+  attributes:
+    label: AI Agent Instruction
+    description: Fill this if AI Agent may work on this task.
+    placeholder: 'AI Agent status: ready / needs-context / do-not-use-agent
+
+
+      Required docs:
+
+      - AGENTS.md
+
+      - SKILLS.md
+
+      - docs/README.md
+
+      - docs/09-ai-agent-rules.md
+
+      - docs/08-coding-standard.md
+
+      - docs/[active-sprint-plan].md
+
+      - docs/[active-sprint-task-prompts].md
+
+
+      Instruction:
+
+      Implement only this issue scope.'
+  validations:
+    required: false
+- type: checkboxes
+  id: definition_of_ready
+  attributes:
+    label: Definition of Ready
+    options:
+    - label: Objective is clear
+    - label: Scope is clear
+    - label: Out of scope is clear
+    - label: Acceptance criteria are defined
+    - label: Area/priority/risk are defined
+    - label: Dependencies are known
+    - label: Required documents/prompts are identified
+    - label: AI Agent status is clear
+- type: checkboxes
+  id: definition_of_done
+  attributes:
+    label: Definition of Done
+    options:
+    - label: Code or documentation completed according to scope
+    - label: Tests added or updated
+    - label: Tests pass
+    - label: Lint/format pass
+    - label: Permission/scope checked if relevant
+    - label: Object-level authorization checked if relevant
+    - label: Audit/event/file/privacy handled if relevant
+    - label: Documentation updated if relevant
+    - label: PR reviewed

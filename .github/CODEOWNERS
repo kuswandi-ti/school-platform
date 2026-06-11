@@ -1,0 +1,88 @@
+# CODEOWNERS
+# Project: school-platform
+#
+# Purpose:
+# Automatically request reviews from responsible owners when files change.
+#
+# Notes:
+# - Replace or extend @kuswandi-ti with the correct GitHub usernames or teams when the team is finalized.
+# - CODEOWNERS requires matching users/teams to have repository access.
+# - If using a GitHub Organization, team format is: @org/team-name
+
+# -------------------------------------------------------------------
+# Global fallback owner
+# -------------------------------------------------------------------
+*                                   @kuswandi-ti
+
+# -------------------------------------------------------------------
+# Documentation
+# -------------------------------------------------------------------
+/README.md                          @kuswandi-ti
+/AGENTS.md                          @kuswandi-ti
+/SKILLS.md                          @kuswandi-ti
+/docs/                              @kuswandi-ti
+
+# -------------------------------------------------------------------
+# GitHub configuration and CI/CD
+# -------------------------------------------------------------------
+/.github/                           @kuswandi-ti
+/.github/workflows/                 @kuswandi-ti
+/.github/ISSUE_TEMPLATE/            @kuswandi-ti
+/.github/pull_request_template.md   @kuswandi-ti
+
+# -------------------------------------------------------------------
+# Infrastructure and deployment
+# -------------------------------------------------------------------
+/infra/                             @kuswandi-ti
+/deploy/                            @kuswandi-ti
+/docker-compose*.yml                @kuswandi-ti
+/Makefile                           @kuswandi-ti
+
+# -------------------------------------------------------------------
+# Backend services
+# -------------------------------------------------------------------
+/services/                          @kuswandi-ti
+/services/api-gateway/              @kuswandi-ti
+/services/identity-service/         @kuswandi-ti
+/services/school-core-service/      @kuswandi-ti
+/services/admission-service/        @kuswandi-ti
+/services/academic-service/         @kuswandi-ti
+/services/finance-service/          @kuswandi-ti
+/services/communication-service/    @kuswandi-ti
+/services/reporting-service/        @kuswandi-ti
+
+# -------------------------------------------------------------------
+# Shared packages and contracts
+# -------------------------------------------------------------------
+/packages/                          @kuswandi-ti
+/packages/proto/                    @kuswandi-ti
+/packages/openapi/                  @kuswandi-ti
+/packages/events/                   @kuswandi-ti
+/packages/shared-go/                @kuswandi-ti
+
+# -------------------------------------------------------------------
+# Web frontend
+# -------------------------------------------------------------------
+/apps/web-admin/                    @kuswandi-ti
+
+# -------------------------------------------------------------------
+# Mobile app
+# -------------------------------------------------------------------
+/apps/mobile-app/                   @kuswandi-ti
+
+# -------------------------------------------------------------------
+# Database migrations and SQL queries
+# -------------------------------------------------------------------
+/services/**/migrations/            @kuswandi-ti
+/services/**/queries/               @kuswandi-ti
+/services/**/sqlc.yaml              @kuswandi-ti
+
+# -------------------------------------------------------------------
+# Security-sensitive areas
+# -------------------------------------------------------------------
+/services/identity-service/         @kuswandi-ti
+/services/finance-service/          @kuswandi-ti
+/services/**/internal/auth*/        @kuswandi-ti
+/services/**/internal/security*/    @kuswandi-ti
+/services/**/internal/audit*/       @kuswandi-ti
+/services/**/internal/approval*/    @kuswandi-ti

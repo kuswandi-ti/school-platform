@@ -1,0 +1,196 @@
+name: AI Agent Task
+description: Create a task that is ready or nearly ready for AI Agent execution
+title: '[AI Agent]: '
+labels:
+- 'ai: ready'
+- 'status: ready'
+body:
+- type: markdown
+  attributes:
+    value: 'Use this template when a task is intended to be executed with AI Agent assistance.
+
+
+      AI Agent must follow:
+
+      - `AGENTS.md`
+
+      - `SKILLS.md`
+
+      - `docs/README.md`
+
+      - `docs/09-ai-agent-rules.md`
+
+      - `docs/08-coding-standard.md`
+
+      - active sprint plan if available
+
+      - active sprint task prompt'
+- type: dropdown
+  id: ai_status
+  attributes:
+    label: AI Agent Status
+    options:
+    - ready
+    - needs-context
+    - generated
+    - needs-human-review
+    - do-not-use-agent
+  validations:
+    required: true
+- type: dropdown
+  id: task_kind
+  attributes:
+    label: Task Kind
+    options:
+    - product-documentation
+    - development-planning
+    - workflow-sop
+    - sprint-planning
+    - backend-coding
+    - api-contract
+    - grpc-proto
+    - event-contract
+    - database-migration
+    - frontend-web
+    - mobile
+    - testing
+    - documentation
+    - ci-cd
+    - security-review
+  validations:
+    required: true
+- type: input
+  id: sprint
+  attributes:
+    label: Sprint / Milestone
+    placeholder: Sprint N — ...
+  validations:
+    required: false
+- type: dropdown
+  id: area
+  attributes:
+    label: Area
+    options:
+    - api-gateway
+    - identity
+    - school-core
+    - admission
+    - academic
+    - finance
+    - communication
+    - reporting
+    - web-admin
+    - mobile
+    - infra
+    - docs
+    - security
+    - observability
+    - ci-cd
+    - file-management
+  validations:
+    required: true
+- type: dropdown
+  id: priority
+  attributes:
+    label: Priority
+    options:
+    - critical
+    - high
+    - medium
+    - low
+  validations:
+    required: true
+- type: textarea
+  id: objective
+  attributes:
+    label: Objective
+    placeholder: What should AI Agent accomplish?
+  validations:
+    required: true
+- type: textarea
+  id: context_docs
+  attributes:
+    label: Required Context Documents
+    description: List exact docs/files AI Agent must read.
+    placeholder: '- AGENTS.md
+
+      - SKILLS.md
+
+      - docs/README.md
+
+      - docs/09-ai-agent-rules.md
+
+      - docs/08-coding-standard.md
+
+      - docs/[active-sprint-plan].md
+
+      - docs/[active-sprint-task-prompts].md'
+  validations:
+    required: true
+- type: textarea
+  id: prompt
+  attributes:
+    label: Prompt to Give AI Agent
+    description: Paste the exact prompt or task instruction.
+    placeholder: 'You are working on project school-platform.
+
+      Implement only the task below.
+
+      ...'
+  validations:
+    required: true
+- type: textarea
+  id: scope
+  attributes:
+    label: Scope
+    placeholder: '- ...
+
+      - ...'
+  validations:
+    required: true
+- type: textarea
+  id: out_of_scope
+  attributes:
+    label: Out of Scope
+    placeholder: '- ...
+
+      - ...'
+  validations:
+    required: true
+- type: textarea
+  id: expected_output
+  attributes:
+    label: Expected Output
+    placeholder: 'Files to create/update:
+
+      Tests to add/update:
+
+      Documentation to update:
+
+      Final response format:'
+  validations:
+    required: true
+- type: textarea
+  id: acceptance_criteria
+  attributes:
+    label: Acceptance Criteria
+    placeholder: '- [ ] ...
+
+      - [ ] ...'
+  validations:
+    required: true
+- type: checkboxes
+  id: ai_safety
+  attributes:
+    label: AI Agent Safety Rules
+    options:
+    - label: AI Agent must not access or create production secrets
+      required: true
+    - label: AI Agent must not make final security/legal/compliance decisions
+      required: true
+    - label: AI Agent must not change architecture without explicit instruction
+      required: true
+    - label: AI Agent output must be reviewed by a human
+      required: true
+    - label: AI Agent must report changed files, tests run, and risks/notes
+      required: true
