@@ -96,7 +96,7 @@ Create local environment files from examples when they are available:
 cp .env.example .env
 ```
 
-Start local dependencies when `docker-compose.yml` is available:
+Start local dependencies:
 
 ```bash
 make up

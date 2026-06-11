@@ -71,10 +71,10 @@ Create local `.env` files from examples when the examples are available:
 ```bash
 cp .env.example .env
 cp services/api-gateway/.env.example services/api-gateway/.env
-cp services/identity-service/.env.example services/identity-service/.env
+cp services/_template-service/.env.example services/_template-service/.env
 ```
 
-Repeat the service-level copy for each service you run locally.
+Repeat the service-level copy for each service that has its own `.env.example`.
 
 Rules:
 
@@ -86,9 +86,9 @@ Rules:
 
 ## Docker Compose Startup
 
-Docker Compose is used for local dependencies such as PostgreSQL, Redis, RabbitMQ, MinIO, and observability tools.
+Docker Compose is used for local dependencies such as PostgreSQL, Redis, RabbitMQ, MinIO, and Mailpit.
 
-When `docker-compose.yml` is available, start dependencies with:
+Start dependencies with:
 
 ```bash
 make up
