@@ -227,10 +227,6 @@ jobs:
     name: Web Check
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: apps/web-admin
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -241,7 +237,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          if [ -f "package.json" ]; then
+          if [ -f "apps/web-admin/package.json" ]; then
             echo "has_web=true" >> "$GITHUB_OUTPUT"
           else
             echo "has_web=false" >> "$GITHUB_OUTPUT"
@@ -259,6 +255,7 @@ jobs:
       - name: Install dependencies
         if: steps.detect.outputs.has_web == 'true'
         shell: bash
+        working-directory: apps/web-admin
         run: |
           set -euo pipefail
 
@@ -271,6 +268,7 @@ jobs:
       - name: Run web lint
         if: steps.detect.outputs.has_web == 'true'
         shell: bash
+        working-directory: apps/web-admin
         run: |
           set -euo pipefail
           npm run lint --if-present
@@ -278,6 +276,7 @@ jobs:
       - name: Run web typecheck
         if: steps.detect.outputs.has_web == 'true'
         shell: bash
+        working-directory: apps/web-admin
         run: |
           set -euo pipefail
           npm run typecheck --if-present
@@ -285,6 +284,7 @@ jobs:
       - name: Run web tests
         if: steps.detect.outputs.has_web == 'true'
         shell: bash
+        working-directory: apps/web-admin
         run: |
           set -euo pipefail
           npm test --if-present
@@ -292,6 +292,7 @@ jobs:
       - name: Run web build
         if: steps.detect.outputs.has_web == 'true'
         shell: bash
+        working-directory: apps/web-admin
         run: |
           set -euo pipefail
           npm run build --if-present
@@ -299,10 +300,6 @@ jobs:
   mobile-check:
     name: Mobile Check
     runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: apps/mobile-app
 
     steps:
       - name: Checkout
@@ -314,7 +311,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          if [ -f "pubspec.yaml" ]; then
+          if [ -f "apps/mobile-app/pubspec.yaml" ]; then
             echo "has_flutter=true" >> "$GITHUB_OUTPUT"
           else
             echo "has_flutter=false" >> "$GITHUB_OUTPUT"
@@ -331,16 +328,19 @@ jobs:
       - name: Flutter pub get
         if: steps.detect.outputs.has_flutter == 'true'
         shell: bash
+        working-directory: apps/mobile-app
         run: flutter pub get
 
       - name: Flutter analyze
         if: steps.detect.outputs.has_flutter == 'true'
         shell: bash
+        working-directory: apps/mobile-app
         run: flutter analyze
 
       - name: Flutter test
         if: steps.detect.outputs.has_flutter == 'true'
         shell: bash
+        working-directory: apps/mobile-app
         run: flutter test
 
   docker-compose-check:

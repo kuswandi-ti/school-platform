@@ -1103,6 +1103,8 @@ CI checks:
 - Docker Compose config
 ```
 
+Web dan mobile checks harus mendeteksi folder app dari repository root dan skip dengan bersih jika app belum dibuat.
+
 ### 16.2 CI on develop/staging/main
 
 CI juga berjalan saat push/merge ke:

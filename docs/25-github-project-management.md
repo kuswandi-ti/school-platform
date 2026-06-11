@@ -56,6 +56,8 @@ GitHub digunakan untuk:
 - AI Agent task coordination
 ```
 
+CI/CD gate harus path-aware; web dan mobile checks skip dengan bersih jika folder app target belum tersedia.
+
 Repository utama:
 
 ```text

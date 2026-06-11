@@ -507,6 +507,7 @@ Testing/UAT documents should involve QA.
 ## 10. Required CI Checks
 
 CI must be path-aware where possible.
+Web and mobile checks must detect app folders from repository root and skip cleanly when the app has not been scaffolded yet.
 
 Recommended checks:
 
