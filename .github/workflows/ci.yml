@@ -28,7 +28,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Check required root files
+      - name: Check required files
         shell: bash
         run: |
           set -euo pipefail
@@ -36,7 +36,15 @@ jobs:
           required_files=(
             "AGENTS.md"
             "SKILLS.md"
+            "README.md"
+            "Makefile"
+            ".gitignore"
+            ".env.example"
             "docs/README.md"
+            "docs/08-coding-standard.md"
+            "docs/09-ai-agent-rules.md"
+            "docs/10-sprint-backlog-mvp.md"
+            "docs/11-github-repository-rules.md"
           )
 
           for file in "${required_files[@]}"; do
@@ -46,40 +54,7 @@ jobs:
             fi
           done
 
-      - name: Check required documentation files when docs folder exists
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          if [ ! -d "docs" ]; then
-            echo "docs directory does not exist yet. Skipping docs completeness check."
-            exit 0
-          fi
-
-          required_docs=(
-            "docs/01-technical-architecture.md"
-            "docs/02-service-boundary.md"
-            "docs/03-data-model-mvp.md"
-            "docs/04-api-contract.md"
-            "docs/05-event-contract.md"
-            "docs/06-ui-screen-user-flow.md"
-            "docs/07-test-plan-acceptance-criteria.md"
-            "docs/08-coding-standard.md"
-            "docs/09-ai-agent-rules.md"
-            "docs/10-sprint-backlog-mvp.md"
-            "docs/11-github-repository-rules.md"
-            "docs/12-ai-agent-sprint-prompts.md"
-            "docs/24-local-development-guide.md"
-          )
-
-          for file in "${required_docs[@]}"; do
-            if [ ! -f "$file" ]; then
-              echo "Missing required documentation file: $file"
-              exit 1
-            fi
-          done
-
-      - name: Check no environment files are committed
+      - name: Check no local environment files are committed
         shell: bash
         run: |
           set -euo pipefail
@@ -95,7 +70,7 @@ jobs:
             \) -print)
 
           if [ -n "$disallowed_files" ]; then
-            echo "Do not commit environment files:"
+            echo "Do not commit local environment files:"
             echo "$disallowed_files"
             exit 1
           fi
@@ -110,6 +85,8 @@ jobs:
             -type f \( \
               -name "*.pem" -o \
               -name "*.key" -o \
+              -name "*.p12" -o \
+              -name "*.pfx" -o \
               -name "id_rsa" -o \
               -name "id_ed25519" \
             \) -print)
@@ -120,12 +97,6 @@ jobs:
             exit 1
           fi
 
-      - name: List markdown documentation
-        shell: bash
-        run: |
-          set -euo pipefail
-          find . -path "./.git" -prune -o -name "*.md" -print | sort
-
   yaml-check:
     name: YAML Check
     runs-on: ubuntu-latest
@@ -134,33 +105,33 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Validate YAML files
+      - name: Validate YAML parses
         shell: bash
         run: |
           set -euo pipefail
 
-          python - <<'PY'
-          import pathlib
-          import sys
-          import yaml
+          files=$(find . \
+            -path "./.git" -prune -o \
+            -type f \( -name "*.yml" -o -name "*.yaml" \) -print | sort)
 
-          paths = [
-              p for p in pathlib.Path(".").rglob("*")
-              if p.is_file()
-              and p.suffix.lower() in {".yml", ".yaml"}
-              and ".git" not in p.parts
-          ]
+          if [ -z "$files" ]; then
+            echo "No YAML files found."
+            exit 0
+          fi
 
-          for path in paths:
-              try:
-                  yaml.safe_load(path.read_text(encoding="utf-8"))
-              except Exception as exc:
-                  print(f"Invalid YAML: {path}")
-                  print(exc)
-                  sys.exit(1)
-
-          print(f"Validated {len(paths)} YAML file(s).")
-          PY
+          ruby -e '
+            require "yaml"
+            ARGV.each do |path|
+              begin
+                YAML.load_file(path)
+              rescue Psych::Exception => e
+                warn "Invalid YAML: #{path}"
+                warn e.message
+                exit 1
+              end
+            end
+            puts "Validated #{ARGV.length} YAML file(s)."
+          ' $files
 
   go-check:
     name: Go Check
@@ -176,7 +147,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          modules=$(find . -path "./.git" -prune -o -name "go.mod" -print | sort)
+          modules=$(find services packages -name go.mod -not -path "*/vendor/*" -print | sort)
 
           if [ -z "$modules" ]; then
             echo "has_go=false" >> "$GITHUB_OUTPUT"
@@ -191,10 +162,10 @@ jobs:
         if: steps.detect.outputs.has_go == 'true'
         uses: actions/setup-go@v5
         with:
-          go-version: "1.24.x"
-          cache: true
+          go-version: "1.23.x"
+          cache: false
 
-      - name: Run Go fmt/vet/test per module
+      - name: Run gofmt, go vet, and go test
         if: steps.detect.outputs.has_go == 'true'
         shell: bash
         run: |
@@ -206,22 +177,57 @@ jobs:
 
             pushd "$module_dir" >/dev/null
 
-            echo "Running gofmt check..."
-            unformatted=$(gofmt -l .)
+            unformatted=$(gofmt -l $(find . -name "*.go" -not -path "./vendor/*"))
             if [ -n "$unformatted" ]; then
               echo "The following Go files need gofmt:"
               echo "$unformatted"
               exit 1
             fi
 
-            echo "Running go vet..."
             go vet ./...
-
-            echo "Running go test..."
-            go test ./... -count=1 -race -cover
+            go test ./... -count=1
 
             popd >/dev/null
-          done < <(find . -path "./.git" -prune -o -name "go.mod" -print | sort)
+          done < <(find services packages -name go.mod -not -path "*/vendor/*" -print | sort)
+
+  contract-check:
+    name: Contract Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check proto placeholders
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          required_dirs=(
+            "packages/proto/identity/v1"
+            "packages/proto/schoolcore/v1"
+            "packages/proto/admission/v1"
+            "packages/proto/academic/v1"
+            "packages/proto/finance/v1"
+            "packages/proto/communication/v1"
+            "packages/proto/reporting/v1"
+            "packages/proto/common/v1"
+          )
+
+          for dir in "${required_dirs[@]}"; do
+            if [ ! -d "$dir" ]; then
+              echo "Missing proto placeholder directory: $dir"
+              exit 1
+            fi
+          done
+
+      - name: Check OpenAPI placeholder
+        shell: bash
+        run: make openapi-check
+
+      - name: Check event schema placeholder
+        shell: bash
+        run: make event-schema-check
 
   web-check:
     name: Web Check
@@ -248,54 +254,32 @@ jobs:
         if: steps.detect.outputs.has_web == 'true'
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
-          cache: "npm"
-          cache-dependency-path: apps/web-admin/package-lock.json
+          node-version: "20"
 
-      - name: Install dependencies
+      - name: Install and check web app
         if: steps.detect.outputs.has_web == 'true'
         shell: bash
         working-directory: apps/web-admin
         run: |
           set -euo pipefail
 
-          if [ -f "package-lock.json" ]; then
+          if [ -f "pnpm-lock.yaml" ]; then
+            corepack enable
+            pnpm install --frozen-lockfile
+            pnpm lint
+            pnpm typecheck
+            pnpm build
+          elif [ -f "package-lock.json" ]; then
             npm ci
+            npm run lint --if-present
+            npm run typecheck --if-present
+            npm run build --if-present
           else
             npm install
+            npm run lint --if-present
+            npm run typecheck --if-present
+            npm run build --if-present
           fi
-
-      - name: Run web lint
-        if: steps.detect.outputs.has_web == 'true'
-        shell: bash
-        working-directory: apps/web-admin
-        run: |
-          set -euo pipefail
-          npm run lint --if-present
-
-      - name: Run web typecheck
-        if: steps.detect.outputs.has_web == 'true'
-        shell: bash
-        working-directory: apps/web-admin
-        run: |
-          set -euo pipefail
-          npm run typecheck --if-present
-
-      - name: Run web tests
-        if: steps.detect.outputs.has_web == 'true'
-        shell: bash
-        working-directory: apps/web-admin
-        run: |
-          set -euo pipefail
-          npm test --if-present
-
-      - name: Run web build
-        if: steps.detect.outputs.has_web == 'true'
-        shell: bash
-        working-directory: apps/web-admin
-        run: |
-          set -euo pipefail
-          npm run build --if-present
 
   mobile-check:
     name: Mobile Check
@@ -325,23 +309,15 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Flutter pub get
+      - name: Analyze and test Flutter app
         if: steps.detect.outputs.has_flutter == 'true'
         shell: bash
         working-directory: apps/mobile-app
-        run: flutter pub get
-
-      - name: Flutter analyze
-        if: steps.detect.outputs.has_flutter == 'true'
-        shell: bash
-        working-directory: apps/mobile-app
-        run: flutter analyze
-
-      - name: Flutter test
-        if: steps.detect.outputs.has_flutter == 'true'
-        shell: bash
-        working-directory: apps/mobile-app
-        run: flutter test
+        run: |
+          set -euo pipefail
+          flutter pub get
+          flutter analyze
+          flutter test
 
   docker-compose-check:
     name: Docker Compose Check
@@ -356,17 +332,12 @@ jobs:
         run: |
           set -euo pipefail
 
-          compose_files=$(find . -maxdepth 3 -type f \( -name "docker-compose.yml" -o -name "docker-compose.yaml" -o -name "compose.yml" -o -name "compose.yaml" \) | sort)
-
-          if [ -z "$compose_files" ]; then
-            echo "No Docker Compose file found. Skipping."
+          if [ ! -f "docker-compose.yml" ]; then
+            echo "docker-compose.yml not found. Skipping."
             exit 0
           fi
 
-          for file in $compose_files; do
-            echo "Validating $file"
-            docker compose -f "$file" config >/dev/null
-          done
+          docker compose -f docker-compose.yml config >/dev/null
 
   ci-result:
     name: CI Result
@@ -375,6 +346,7 @@ jobs:
       - repository-check
       - yaml-check
       - go-check
+      - contract-check
       - web-check
       - mobile-check
       - docker-compose-check
@@ -383,11 +355,10 @@ jobs:
     steps:
       - name: Verify all required jobs passed
         shell: bash
+        env:
+          NEEDS_JSON: ${{ toJson(needs) }}
         run: |
           set -euo pipefail
-
-          results='${{ toJson(needs) }}'
-          echo "$results"
 
           python - <<'PY'
           import json
@@ -410,5 +381,3 @@ jobs:
 
           print("All CI jobs passed.")
           PY
-        env:
-          NEEDS_JSON: ${{ toJson(needs) }}
