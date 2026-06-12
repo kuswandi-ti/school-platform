@@ -25,14 +25,18 @@ func TestLoginSuccess(t *testing.T) {
 		DisplayName: "Test User", Status: "active",
 	}}
 	sessions := &sessionStoreStub{}
-	issuer := tokenIssuerStub{tokens: token.Tokens{
+	contexts := loginContextStoreStub{context: domain.UserContext{
+		UserID: userID, Roles: []string{"guru"}, Permissions: []string{"academic.grade.manage"},
+		Assignments: []domain.RoleAssignment{{FoundationID: uuid.MustParse("11111111-1111-1111-1111-111111111111")}},
+	}}
+	issuer := &tokenIssuerStub{tokens: token.Tokens{
 		AccessToken: "access-token", RefreshToken: "refresh-token",
 		RefreshTokenHash: "refresh-token-hash",
 		AccessExpiresAt:  time.Now().Add(15 * time.Minute),
 		RefreshExpiresAt: time.Now().Add(30 * 24 * time.Hour),
 	}}
 
-	login, err := NewLogin(users, sessions, issuer)
+	login, err := NewLogin(users, sessions, contexts, issuer)
 	require.NoError(t, err)
 	result, err := login.Execute(context.Background(), LoginInput{
 		Email: "user@example.com", Password: "valid password",
@@ -44,15 +48,18 @@ func TestLoginSuccess(t *testing.T) {
 	require.Equal(t, "refresh-token-hash", sessions.created.RefreshTokenHash)
 	require.NotEqual(t, result.RefreshToken, sessions.created.RefreshTokenHash)
 	require.True(t, users.lastLoginUpdated)
+	require.Equal(t, "11111111-1111-1111-1111-111111111111", issuer.actorClaims.FoundationID)
+	require.Equal(t, []string{"guru"}, issuer.actorClaims.Roles)
 }
 
 func TestLoginRejectsWrongPassword(t *testing.T) {
 	passwordHash, err := password.Hash("valid password")
 	require.NoError(t, err)
 	sessions := &sessionStoreStub{}
+	contexts := loginContextStoreStub{}
 	login, err := NewLogin(&userStoreStub{user: domain.User{
 		ID: uuid.New(), PasswordHash: passwordHash, Status: "active",
-	}}, sessions, tokenIssuerStub{})
+	}}, sessions, contexts, &tokenIssuerStub{})
 	require.NoError(t, err)
 	_, err = login.Execute(context.Background(), LoginInput{Password: "wrong password"})
 	require.ErrorIs(t, err, ErrInvalidCredentials)
@@ -65,9 +72,10 @@ func TestLoginRejectsInactiveAndLockedUsers(t *testing.T) {
 	for _, userStatus := range []string{"inactive", "locked"} {
 		t.Run(userStatus, func(t *testing.T) {
 			sessions := &sessionStoreStub{}
+			contexts := loginContextStoreStub{}
 			login, err := NewLogin(&userStoreStub{user: domain.User{
 				ID: uuid.New(), PasswordHash: passwordHash, Status: userStatus,
-			}}, sessions, tokenIssuerStub{})
+			}}, sessions, contexts, &tokenIssuerStub{})
 			require.NoError(t, err)
 			_, err = login.Execute(context.Background(), LoginInput{Password: "valid password"})
 			require.ErrorIs(t, err, ErrUserInactive)
@@ -77,7 +85,7 @@ func TestLoginRejectsInactiveAndLockedUsers(t *testing.T) {
 }
 
 func TestLoginRejectsUnknownEmail(t *testing.T) {
-	login, err := NewLogin(&userStoreStub{err: pgx.ErrNoRows}, &sessionStoreStub{}, tokenIssuerStub{})
+	login, err := NewLogin(&userStoreStub{err: pgx.ErrNoRows}, &sessionStoreStub{}, loginContextStoreStub{}, &tokenIssuerStub{})
 	require.NoError(t, err)
 	_, err = login.Execute(context.Background(), LoginInput{Email: "missing@example.com", Password: "password"})
 	require.ErrorIs(t, err, ErrInvalidCredentials)
@@ -86,7 +94,7 @@ func TestLoginRejectsUnknownEmail(t *testing.T) {
 func TestLoginRejectsMalformedStoredHashAsInternalError(t *testing.T) {
 	login, err := NewLogin(&userStoreStub{user: domain.User{
 		ID: uuid.New(), PasswordHash: "malformed", Status: "active",
-	}}, &sessionStoreStub{}, tokenIssuerStub{})
+	}}, &sessionStoreStub{}, loginContextStoreStub{}, &tokenIssuerStub{})
 	require.NoError(t, err)
 	_, err = login.Execute(context.Background(), LoginInput{Password: "password"})
 	require.Error(t, err)
@@ -120,11 +128,13 @@ func (s *sessionStoreStub) CreateSession(_ context.Context, params repository.Cr
 }
 
 type tokenIssuerStub struct {
-	tokens token.Tokens
-	err    error
+	tokens      token.Tokens
+	err         error
+	actorClaims token.ActorClaims
 }
 
-func (s tokenIssuerStub) Issue(uuid.UUID) (token.Tokens, error) {
+func (s *tokenIssuerStub) Issue(_ uuid.UUID, actorClaims token.ActorClaims) (token.Tokens, error) {
+	s.actorClaims = actorClaims
 	if s.err != nil {
 		return token.Tokens{}, s.err
 	}
@@ -132,4 +142,13 @@ func (s tokenIssuerStub) Issue(uuid.UUID) (token.Tokens, error) {
 		return token.Tokens{}, errors.New("token issuer should not be called")
 	}
 	return s.tokens, nil
+}
+
+type loginContextStoreStub struct {
+	context domain.UserContext
+	err     error
+}
+
+func (s loginContextStoreStub) GetUserContext(context.Context, uuid.UUID, time.Time) (domain.UserContext, error) {
+	return s.context, s.err
 }

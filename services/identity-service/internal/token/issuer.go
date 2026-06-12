@@ -21,6 +21,19 @@ type Tokens struct {
 	RefreshExpiresAt time.Time
 }
 
+type ActorClaims struct {
+	FoundationID string         `json:"foundation_id,omitempty"`
+	SchoolID     string         `json:"school_id,omitempty"`
+	Roles        []string       `json:"roles,omitempty"`
+	Permissions  []string       `json:"permissions,omitempty"`
+	Scope        map[string]any `json:"scope,omitempty"`
+}
+
+type AccessTokenClaims struct {
+	ActorClaims
+	jwt.RegisteredClaims
+}
+
 type Issuer struct {
 	privateKey ed25519.PrivateKey
 	issuer     string
@@ -47,17 +60,20 @@ func NewIssuer(privateKey ed25519.PrivateKey, issuer, audience string, accessTTL
 	}, nil
 }
 
-func (i *Issuer) Issue(userID uuid.UUID) (Tokens, error) {
+func (i *Issuer) Issue(userID uuid.UUID, actorClaims ActorClaims) (Tokens, error) {
 	now := i.now().UTC()
 	accessExpiresAt := now.Add(i.accessTTL)
-	claims := jwt.RegisteredClaims{
-		Issuer:    i.issuer,
-		Subject:   userID.String(),
-		Audience:  jwt.ClaimStrings{i.audience},
-		ExpiresAt: jwt.NewNumericDate(accessExpiresAt),
-		IssuedAt:  jwt.NewNumericDate(now),
-		NotBefore: jwt.NewNumericDate(now),
-		ID:        uuid.NewString(),
+	claims := AccessTokenClaims{
+		ActorClaims: actorClaims,
+		RegisteredClaims: jwt.RegisteredClaims{
+			Issuer:    i.issuer,
+			Subject:   userID.String(),
+			Audience:  jwt.ClaimStrings{i.audience},
+			ExpiresAt: jwt.NewNumericDate(accessExpiresAt),
+			IssuedAt:  jwt.NewNumericDate(now),
+			NotBefore: jwt.NewNumericDate(now),
+			ID:        uuid.NewString(),
+		},
 	}
 	accessToken, err := jwt.NewWithClaims(jwt.SigningMethodEdDSA, claims).SignedString(i.privateKey)
 	if err != nil {
@@ -80,7 +96,7 @@ func (i *Issuer) Issue(userID uuid.UUID) (Tokens, error) {
 }
 
 func (i *Issuer) ValidateAccessToken(accessToken string) (uuid.UUID, error) {
-	claims := &jwt.RegisteredClaims{}
+	claims := &AccessTokenClaims{}
 	parsed, err := jwt.ParseWithClaims(accessToken, claims, func(parsed *jwt.Token) (any, error) {
 		if parsed.Method != jwt.SigningMethodEdDSA {
 			return nil, fmt.Errorf("unexpected access token signing method")

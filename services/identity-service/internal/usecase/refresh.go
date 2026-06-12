@@ -31,6 +31,7 @@ type RefreshSessionStore interface {
 
 type Refresh struct {
 	users    RefreshUserStore
+	contexts LoginContextStore
 	sessions RefreshSessionStore
 	tokens   TokenIssuer
 	now      func() time.Time
@@ -48,8 +49,8 @@ type RefreshOutput struct {
 	ExpiresIn    int64
 }
 
-func NewRefresh(users RefreshUserStore, sessions RefreshSessionStore, tokens TokenIssuer) *Refresh {
-	return &Refresh{users: users, sessions: sessions, tokens: tokens, now: time.Now}
+func NewRefresh(users RefreshUserStore, contexts LoginContextStore, sessions RefreshSessionStore, tokens TokenIssuer) *Refresh {
+	return &Refresh{users: users, contexts: contexts, sessions: sessions, tokens: tokens, now: time.Now}
 }
 
 func (u *Refresh) Execute(ctx context.Context, input RefreshInput) (RefreshOutput, error) {
@@ -77,7 +78,12 @@ func (u *Refresh) Execute(ctx context.Context, input RefreshInput) (RefreshOutpu
 		return RefreshOutput{}, ErrUserInactive
 	}
 
-	issued, err := u.tokens.Issue(session.UserID)
+	userContext, err := u.contexts.GetUserContext(ctx, session.UserID, now)
+	if err != nil {
+		return RefreshOutput{}, fmt.Errorf("load refresh user context: %w", err)
+	}
+
+	issued, err := u.tokens.Issue(session.UserID, actorClaimsFromContext(userContext))
 	if err != nil {
 		return RefreshOutput{}, fmt.Errorf("issue refreshed tokens: %w", err)
 	}

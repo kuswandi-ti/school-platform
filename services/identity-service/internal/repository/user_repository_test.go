@@ -204,9 +204,10 @@ func TestRefreshAfterSessionRevocationIsRejected(t *testing.T) {
 	require.NoError(t, err)
 	issuer, err := token.NewIssuer(privateKey, "identity-test", "school-platform-test", 15*time.Minute, 24*time.Hour)
 	require.NoError(t, err)
-	issued, err := issuer.Issue(userID)
+	issued, err := issuer.Issue(userID, token.ActorClaims{})
 	require.NoError(t, err)
 
+	authorization := repository.NewAuthorizationRepository(pool)
 	sessions := repository.NewSessionRepository(pool)
 	err = sessions.CreateSession(ctx, repository.CreateSessionParams{
 		ID: uuid.New(), UserID: userID, RefreshTokenHash: issued.RefreshTokenHash,
@@ -220,7 +221,7 @@ func TestRefreshAfterSessionRevocationIsRejected(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	refresh := usecase.NewRefresh(users, sessions, issuer)
+	refresh := usecase.NewRefresh(users, authorization, sessions, issuer)
 	_, err = refresh.Execute(ctx, usecase.RefreshInput{RefreshToken: issued.RefreshToken})
 	require.ErrorIs(t, err, usecase.ErrRefreshTokenReused)
 }

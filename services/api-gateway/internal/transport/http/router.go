@@ -12,7 +12,7 @@ import (
 	"school-platform/services/api-gateway/internal/response"
 )
 
-func NewRouter(cfg config.Config, logger *slog.Logger, identityClient client.Identity) http.Handler {
+func NewRouter(cfg config.Config, logger *slog.Logger, identityClient client.Identity, authValidator *middleware.JWTValidator) http.Handler {
 	router := chi.NewRouter()
 
 	router.Use(middleware.RequestContext)
@@ -32,7 +32,7 @@ func NewRouter(cfg config.Config, logger *slog.Logger, identityClient client.Ide
 		r.Get("/ping", PingHandler())
 		r.Post("/auth/login", LoginHandler(identityClient))
 		r.Post("/auth/refresh", RefreshHandler(identityClient))
-		r.Post("/auth/logout", LogoutHandler(identityClient))
+		r.With(middleware.RequireAuth(authValidator)).Post("/auth/logout", LogoutHandler(identityClient))
 	})
 
 	return router

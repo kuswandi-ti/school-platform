@@ -5,6 +5,7 @@ go 1.23.0
 require (
 	github.com/go-chi/chi/v5 v5.2.1
 	github.com/go-playground/validator/v10 v10.26.0
+	github.com/golang-jwt/jwt/v5 v5.3.1
 	google.golang.org/grpc v1.73.0
 	school-platform/packages/proto v0.0.0
 )

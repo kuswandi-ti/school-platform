@@ -21,12 +21,16 @@ func TestRefreshRotatesToken(t *testing.T) {
 	sessions := &refreshSessionStoreStub{session: repository.Session{
 		ID: sessionID, UserID: userID, ExpiresAt: now.Add(time.Hour),
 	}}
-	issuer := tokenIssuerStub{tokens: token.Tokens{
+	issuer := &tokenIssuerStub{tokens: token.Tokens{
 		AccessToken: "new-access-token", RefreshToken: "new-refresh-token",
 		RefreshTokenHash: token.HashRefreshToken("new-refresh-token"),
 		AccessExpiresAt:  now.Add(15 * time.Minute), RefreshExpiresAt: now.Add(30 * 24 * time.Hour),
 	}}
-	refresh := NewRefresh(refreshUserStoreStub{user: domain.User{ID: userID, Status: "active"}}, sessions, issuer)
+	contexts := loginContextStoreStub{context: domain.UserContext{
+		UserID: userID, Roles: []string{"guru"}, Permissions: []string{"academic.attendance.manage"},
+		Assignments: []domain.RoleAssignment{{FoundationID: uuid.MustParse("22222222-2222-2222-2222-222222222222")}},
+	}}
+	refresh := NewRefresh(refreshUserStoreStub{user: domain.User{ID: userID, Status: "active"}}, contexts, sessions, issuer)
 	refresh.now = func() time.Time { return now }
 
 	result, err := refresh.Execute(context.Background(), RefreshInput{RefreshToken: "old-refresh-token"})
@@ -44,7 +48,7 @@ func TestRefreshRejectsReusedOrRevokedToken(t *testing.T) {
 	sessions := &refreshSessionStoreStub{session: repository.Session{
 		ID: uuid.New(), UserID: uuid.New(), ExpiresAt: revokedAt.Add(time.Hour), RevokedAt: &revokedAt,
 	}}
-	refresh := NewRefresh(refreshUserStoreStub{}, sessions, tokenIssuerStub{})
+	refresh := NewRefresh(refreshUserStoreStub{}, loginContextStoreStub{}, sessions, &tokenIssuerStub{})
 
 	_, err := refresh.Execute(context.Background(), RefreshInput{RefreshToken: "reused-token"})
 	require.ErrorIs(t, err, ErrRefreshTokenReused)
@@ -56,7 +60,7 @@ func TestRefreshRejectsExpiredToken(t *testing.T) {
 	sessions := &refreshSessionStoreStub{session: repository.Session{
 		ID: uuid.New(), UserID: uuid.New(), ExpiresAt: now.Add(-time.Second),
 	}}
-	refresh := NewRefresh(refreshUserStoreStub{}, sessions, tokenIssuerStub{})
+	refresh := NewRefresh(refreshUserStoreStub{}, loginContextStoreStub{}, sessions, &tokenIssuerStub{})
 	refresh.now = func() time.Time { return now }
 
 	_, err := refresh.Execute(context.Background(), RefreshInput{RefreshToken: "expired-token"})
@@ -64,7 +68,7 @@ func TestRefreshRejectsExpiredToken(t *testing.T) {
 }
 
 func TestRefreshRejectsUnknownToken(t *testing.T) {
-	refresh := NewRefresh(refreshUserStoreStub{}, &refreshSessionStoreStub{findErr: pgx.ErrNoRows}, tokenIssuerStub{})
+	refresh := NewRefresh(refreshUserStoreStub{}, loginContextStoreStub{}, &refreshSessionStoreStub{findErr: pgx.ErrNoRows}, &tokenIssuerStub{})
 	_, err := refresh.Execute(context.Background(), RefreshInput{RefreshToken: "unknown-token"})
 	require.ErrorIs(t, err, ErrInvalidRefreshToken)
 }
@@ -76,12 +80,12 @@ func TestRefreshDetectsConcurrentReuse(t *testing.T) {
 		session:   repository.Session{ID: uuid.New(), UserID: userID, ExpiresAt: now.Add(time.Hour)},
 		rotateErr: pgx.ErrNoRows,
 	}
-	issuer := tokenIssuerStub{tokens: token.Tokens{
+	issuer := &tokenIssuerStub{tokens: token.Tokens{
 		AccessToken: "discarded-access-token", RefreshToken: "discarded-refresh-token",
 		RefreshTokenHash: token.HashRefreshToken("discarded-refresh-token"),
 		AccessExpiresAt:  now.Add(time.Minute), RefreshExpiresAt: now.Add(time.Hour),
 	}}
-	refresh := NewRefresh(refreshUserStoreStub{user: domain.User{ID: userID, Status: "active"}}, sessions, issuer)
+	refresh := NewRefresh(refreshUserStoreStub{user: domain.User{ID: userID, Status: "active"}}, loginContextStoreStub{}, sessions, issuer)
 	refresh.now = func() time.Time { return now }
 
 	_, err := refresh.Execute(context.Background(), RefreshInput{RefreshToken: "already-consumed-concurrently"})

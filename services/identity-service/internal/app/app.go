@@ -52,15 +52,17 @@ func (a *App) Run(ctx context.Context) error {
 
 	users := repository.NewUserRepository(pool)
 	sessions := repository.NewSessionRepository(pool)
+	authorization := repository.NewAuthorizationRepository(pool)
 	login, err := usecase.NewLogin(
 		users,
 		sessions,
+		authorization,
 		tokenIssuer,
 	)
 	if err != nil {
 		return err
 	}
-	refresh := usecase.NewRefresh(users, sessions, tokenIssuer)
+	refresh := usecase.NewRefresh(users, authorization, sessions, tokenIssuer)
 	logout := usecase.NewLogout(sessions, tokenIssuer)
 	server := grpc.NewServer()
 	identityv1.RegisterIdentityServiceServer(server, grpctransport.NewIdentityServer(login, refresh, logout))
