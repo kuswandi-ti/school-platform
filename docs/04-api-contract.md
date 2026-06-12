@@ -1032,6 +1032,16 @@ Login success data:
 
 Login errors use `VALIDATION_ERROR`, `UNAUTHORIZED`, `FORBIDDEN`, or `SERVICE_UNAVAILABLE` in the standard response envelope. Password hashes are never returned.
 
+Refresh request:
+
+```json
+{
+  "refresh_token": "opaque-token"
+}
+```
+
+Refresh success data returns a new `access_token` and `refresh_token`. The submitted token is revoked atomically, its `last_used_at` is updated, and any later reuse returns `UNAUTHORIZED`.
+
 Catatan:
 
 ```text

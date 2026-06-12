@@ -50,16 +50,19 @@ func (a *App) Run(ctx context.Context) error {
 		return err
 	}
 
+	users := repository.NewUserRepository(pool)
+	sessions := repository.NewSessionRepository(pool)
 	login, err := usecase.NewLogin(
-		repository.NewUserRepository(pool),
-		repository.NewSessionRepository(pool),
+		users,
+		sessions,
 		tokenIssuer,
 	)
 	if err != nil {
 		return err
 	}
+	refresh := usecase.NewRefresh(users, sessions, tokenIssuer)
 	server := grpc.NewServer()
-	identityv1.RegisterIdentityServiceServer(server, grpctransport.NewIdentityServer(login))
+	identityv1.RegisterIdentityServiceServer(server, grpctransport.NewIdentityServer(login, refresh))
 
 	listener, err := net.Listen("tcp", a.config.GRPCAddr)
 	if err != nil {

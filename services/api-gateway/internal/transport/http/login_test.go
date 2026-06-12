@@ -66,6 +66,10 @@ func (s *identityClientStub) Login(_ context.Context, request *identityv1.LoginR
 	return s.response, s.err
 }
 
+func (s *identityClientStub) Refresh(_ context.Context, _ *identityv1.RefreshRequest, _ ...grpc.CallOption) (*identityv1.RefreshResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "not implemented")
+}
+
 func performLogin(t *testing.T, client *identityClientStub, body string) *httptest.ResponseRecorder {
 	t.Helper()
 	request := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", bytes.NewBufferString(body))

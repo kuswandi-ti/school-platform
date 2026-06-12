@@ -14,6 +14,7 @@ GET /readyz
 GET /metrics
 GET /api/v1/ping
 POST /api/v1/auth/login
+POST /api/v1/auth/refresh
 ```
 
 `/api/v1/ping` returns the standard response envelope:

@@ -47,10 +47,27 @@ INSERT INTO user_sessions (
     id,
     user_id,
     refresh_token_hash,
+    device_id,
     ip_address,
     user_agent,
     expires_at
 ) VALUES (
-    $1, $2, $3, $4, $5, $6
+    $1, $2, $3, $4, $5, $6, $7
 )
 RETURNING id;
+
+-- name: GetUserSessionByRefreshHash :one
+SELECT id, user_id, refresh_token_hash, device_id, ip_address, user_agent,
+    expires_at, revoked_at, last_used_at, created_at, updated_at
+FROM user_sessions
+WHERE refresh_token_hash = $1;
+
+-- name: RevokeUserSessionForRotation :one
+UPDATE user_sessions
+SET revoked_at = $2,
+    last_used_at = $2,
+    updated_at = $2
+WHERE id = $1
+  AND revoked_at IS NULL
+  AND expires_at > $2
+RETURNING user_id, device_id;

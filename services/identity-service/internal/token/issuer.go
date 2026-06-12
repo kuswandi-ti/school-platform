@@ -69,13 +69,17 @@ func (i *Issuer) Issue(userID uuid.UUID) (Tokens, error) {
 		return Tokens{}, fmt.Errorf("generate refresh token: %w", err)
 	}
 	refreshToken := base64.RawURLEncoding.EncodeToString(refreshBytes)
-	refreshHash := sha256.Sum256([]byte(refreshToken))
 
 	return Tokens{
 		AccessToken:      accessToken,
 		RefreshToken:     refreshToken,
-		RefreshTokenHash: hex.EncodeToString(refreshHash[:]),
+		RefreshTokenHash: HashRefreshToken(refreshToken),
 		AccessExpiresAt:  accessExpiresAt,
 		RefreshExpiresAt: now.Add(i.refreshTTL),
 	}, nil
+}
+
+func HashRefreshToken(refreshToken string) string {
+	refreshHash := sha256.Sum256([]byte(refreshToken))
+	return hex.EncodeToString(refreshHash[:])
 }

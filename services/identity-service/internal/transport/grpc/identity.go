@@ -14,11 +14,41 @@ import (
 
 type IdentityServer struct {
 	identityv1.UnimplementedIdentityServiceServer
-	login *usecase.Login
+	login   *usecase.Login
+	refresh *usecase.Refresh
 }
 
-func NewIdentityServer(login *usecase.Login) *IdentityServer {
-	return &IdentityServer{login: login}
+func NewIdentityServer(login *usecase.Login, refresh *usecase.Refresh) *IdentityServer {
+	return &IdentityServer{login: login, refresh: refresh}
+}
+
+func (s *IdentityServer) Refresh(ctx context.Context, request *identityv1.RefreshRequest) (*identityv1.RefreshResponse, error) {
+	if request.GetRefreshToken() == "" {
+		return nil, status.Error(codes.InvalidArgument, "refresh token is required")
+	}
+	output, err := s.refresh.Execute(ctx, usecase.RefreshInput{
+		RefreshToken: request.GetRefreshToken(),
+		IPAddress:    optionalString(request.GetIpAddress()),
+		UserAgent:    optionalString(request.GetUserAgent()),
+	})
+	if err != nil {
+		switch {
+		case errors.Is(err, usecase.ErrInvalidRefreshToken),
+			errors.Is(err, usecase.ErrRefreshTokenReused),
+			errors.Is(err, usecase.ErrRefreshTokenExpired):
+			return nil, status.Error(codes.Unauthenticated, "invalid refresh token")
+		case errors.Is(err, usecase.ErrUserInactive):
+			return nil, status.Error(codes.PermissionDenied, "user is not active")
+		default:
+			return nil, status.Error(codes.Internal, "refresh failed")
+		}
+	}
+	return &identityv1.RefreshResponse{
+		AccessToken:  output.AccessToken,
+		RefreshToken: output.RefreshToken,
+		TokenType:    "Bearer",
+		ExpiresIn:    output.ExpiresIn,
+	}, nil
 }
 
 func (s *IdentityServer) Login(ctx context.Context, request *identityv1.LoginRequest) (*identityv1.LoginResponse, error) {

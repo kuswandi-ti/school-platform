@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 	"time"
 
@@ -118,6 +119,70 @@ func TestSessionRepositoryStoresRefreshTokenHash(t *testing.T) {
 	var storedHash string
 	require.NoError(t, pool.QueryRow(ctx, "SELECT refresh_token_hash FROM user_sessions WHERE user_id = $1", userID).Scan(&storedHash))
 	require.Equal(t, refreshTokenHash, storedHash)
+}
+
+func TestSessionRepositoryRotatesTokenOnce(t *testing.T) {
+	users, pool, ctx := newTestRepository(t)
+	passwordHash, err := password.Hash("repository test password")
+	require.NoError(t, err)
+	userID := uuid.New()
+	_, err = users.CreateUser(ctx, repository.CreateUserParams{
+		ID: userID, Email: "rotate@example.com", PasswordHash: passwordHash,
+		DisplayName: "Rotate User", Status: "active",
+	})
+	require.NoError(t, err)
+
+	sessions := repository.NewSessionRepository(pool)
+	currentSessionID := uuid.New()
+	oldHash := "old-refresh-token-hash"
+	err = sessions.CreateSession(ctx, repository.CreateSessionParams{
+		ID: currentSessionID, UserID: userID, RefreshTokenHash: oldHash,
+		ExpiresAt: time.Now().UTC().Add(time.Hour),
+	})
+	require.NoError(t, err)
+
+	usedAt := time.Now().UTC().Truncate(time.Microsecond)
+	rotate := func(newHash string) error {
+		return sessions.RotateSession(ctx, repository.RotateSessionParams{
+			CurrentSessionID: currentSessionID,
+			NewSessionID:     uuid.New(), UserID: userID, RefreshTokenHash: newHash,
+			CurrentUsedAt: usedAt, NewSessionExpiresAt: usedAt.Add(24 * time.Hour),
+		})
+	}
+
+	errorsCh := make(chan error, 2)
+	var waitGroup sync.WaitGroup
+	for _, newHash := range []string{"new-refresh-hash-one", "new-refresh-hash-two"} {
+		waitGroup.Add(1)
+		go func(hash string) {
+			defer waitGroup.Done()
+			errorsCh <- rotate(hash)
+		}(newHash)
+	}
+	waitGroup.Wait()
+	close(errorsCh)
+
+	var successCount, failureCount int
+	for rotateErr := range errorsCh {
+		if rotateErr == nil {
+			successCount++
+		} else {
+			failureCount++
+			require.ErrorIs(t, rotateErr, pgx.ErrNoRows)
+		}
+	}
+	require.Equal(t, 1, successCount)
+	require.Equal(t, 1, failureCount)
+
+	oldSession, err := sessions.FindByRefreshTokenHash(ctx, oldHash)
+	require.NoError(t, err)
+	require.NotNil(t, oldSession.RevokedAt)
+	require.NotNil(t, oldSession.LastUsedAt)
+	require.WithinDuration(t, usedAt, *oldSession.LastUsedAt, time.Microsecond)
+
+	var activeSessions int
+	require.NoError(t, pool.QueryRow(ctx, `SELECT COUNT(*) FROM user_sessions WHERE user_id = $1 AND revoked_at IS NULL`, userID).Scan(&activeSessions))
+	require.Equal(t, 1, activeSessions)
 }
 
 func newTestRepository(t *testing.T) (*repository.UserRepository, *pgxpool.Pool, context.Context) {

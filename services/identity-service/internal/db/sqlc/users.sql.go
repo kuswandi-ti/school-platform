@@ -69,11 +69,12 @@ INSERT INTO user_sessions (
     id,
     user_id,
     refresh_token_hash,
+    device_id,
     ip_address,
     user_agent,
     expires_at
 ) VALUES (
-    $1, $2, $3, $4, $5, $6
+    $1, $2, $3, $4, $5, $6, $7
 )
 RETURNING id
 `
@@ -82,6 +83,7 @@ type CreateUserSessionParams struct {
 	ID               uuid.UUID          `json:"id"`
 	UserID           uuid.UUID          `json:"user_id"`
 	RefreshTokenHash string             `json:"refresh_token_hash"`
+	DeviceID         *uuid.UUID         `json:"device_id"`
 	IpAddress        *string            `json:"ip_address"`
 	UserAgent        pgtype.Text        `json:"user_agent"`
 	ExpiresAt        pgtype.Timestamptz `json:"expires_at"`
@@ -92,6 +94,7 @@ func (q *Queries) CreateUserSession(ctx context.Context, arg CreateUserSessionPa
 		arg.ID,
 		arg.UserID,
 		arg.RefreshTokenHash,
+		arg.DeviceID,
 		arg.IpAddress,
 		arg.UserAgent,
 		arg.ExpiresAt,
@@ -149,6 +152,60 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
+	return i, err
+}
+
+const getUserSessionByRefreshHash = `-- name: GetUserSessionByRefreshHash :one
+SELECT id, user_id, refresh_token_hash, device_id, ip_address, user_agent,
+    expires_at, revoked_at, last_used_at, created_at, updated_at
+FROM user_sessions
+WHERE refresh_token_hash = $1
+`
+
+func (q *Queries) GetUserSessionByRefreshHash(ctx context.Context, refreshTokenHash string) (UserSession, error) {
+	row := q.db.QueryRow(ctx, getUserSessionByRefreshHash, refreshTokenHash)
+	var i UserSession
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.RefreshTokenHash,
+		&i.DeviceID,
+		&i.IpAddress,
+		&i.UserAgent,
+		&i.ExpiresAt,
+		&i.RevokedAt,
+		&i.LastUsedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const revokeUserSessionForRotation = `-- name: RevokeUserSessionForRotation :one
+UPDATE user_sessions
+SET revoked_at = $2,
+    last_used_at = $2,
+    updated_at = $2
+WHERE id = $1
+  AND revoked_at IS NULL
+  AND expires_at > $2
+RETURNING user_id, device_id
+`
+
+type RevokeUserSessionForRotationParams struct {
+	ID        uuid.UUID          `json:"id"`
+	RevokedAt pgtype.Timestamptz `json:"revoked_at"`
+}
+
+type RevokeUserSessionForRotationRow struct {
+	UserID   uuid.UUID  `json:"user_id"`
+	DeviceID *uuid.UUID `json:"device_id"`
+}
+
+func (q *Queries) RevokeUserSessionForRotation(ctx context.Context, arg RevokeUserSessionForRotationParams) (RevokeUserSessionForRotationRow, error) {
+	row := q.db.QueryRow(ctx, revokeUserSessionForRotation, arg.ID, arg.RevokedAt)
+	var i RevokeUserSessionForRotationRow
+	err := row.Scan(&i.UserID, &i.DeviceID)
 	return i, err
 }
 

@@ -31,6 +31,7 @@ func NewRouter(cfg config.Config, logger *slog.Logger, identityClient client.Ide
 	router.Route("/api/v1", func(r chi.Router) {
 		r.Get("/ping", PingHandler())
 		r.Post("/auth/login", LoginHandler(identityClient))
+		r.Post("/auth/refresh", RefreshHandler(identityClient))
 	})
 
 	return router

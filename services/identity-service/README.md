@@ -36,3 +36,5 @@ Repository integration tests use the same `IDENTITY_TEST_DATABASE_URL` and creat
 Identity Service exposes `schoolplatform.identity.v1.IdentityService/Login` over gRPC. It verifies credentials, rejects inactive accounts, issues Ed25519 access tokens, and stores only the SHA-256 hash of the opaque refresh token.
 
 JWT private keys must be supplied through `JWT_PRIVATE_KEY_PATH` and must never be committed.
+
+Refresh token rotation revokes the consumed session row, updates `last_used_at`, and creates a new session containing only the new token hash. Reused, revoked, and expired tokens are rejected.
