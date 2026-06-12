@@ -10,6 +10,10 @@ import (
 	"syscall"
 	"time"
 
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+	identityv1 "school-platform/packages/proto/gen/go/identity/v1"
+
 	"school-platform/services/api-gateway/internal/config"
 	httptransport "school-platform/services/api-gateway/internal/transport/http"
 )
@@ -27,7 +31,16 @@ func New(cfg config.Config, logger *slog.Logger) *App {
 }
 
 func (a *App) Run() error {
-	router := httptransport.NewRouter(a.config, a.logger)
+	identityConnection, err := grpc.NewClient(
+		a.config.GRPCTargets.Identity,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil {
+		return err
+	}
+	defer identityConnection.Close()
+
+	router := httptransport.NewRouter(a.config, a.logger, identityv1.NewIdentityServiceClient(identityConnection))
 
 	server := &http.Server{
 		Addr:              a.config.HTTPAddr,

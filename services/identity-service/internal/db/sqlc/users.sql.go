@@ -64,6 +64,43 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
+const createUserSession = `-- name: CreateUserSession :one
+INSERT INTO user_sessions (
+    id,
+    user_id,
+    refresh_token_hash,
+    ip_address,
+    user_agent,
+    expires_at
+) VALUES (
+    $1, $2, $3, $4, $5, $6
+)
+RETURNING id
+`
+
+type CreateUserSessionParams struct {
+	ID               uuid.UUID          `json:"id"`
+	UserID           uuid.UUID          `json:"user_id"`
+	RefreshTokenHash string             `json:"refresh_token_hash"`
+	IpAddress        *string            `json:"ip_address"`
+	UserAgent        pgtype.Text        `json:"user_agent"`
+	ExpiresAt        pgtype.Timestamptz `json:"expires_at"`
+}
+
+func (q *Queries) CreateUserSession(ctx context.Context, arg CreateUserSessionParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, createUserSession,
+		arg.ID,
+		arg.UserID,
+		arg.RefreshTokenHash,
+		arg.IpAddress,
+		arg.UserAgent,
+		arg.ExpiresAt,
+	)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
 const getUserByEmail = `-- name: GetUserByEmail :one
 SELECT id, email, phone, password_hash, display_name, avatar_file_id, status,
     last_login_at, created_at, updated_at

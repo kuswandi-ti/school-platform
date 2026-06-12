@@ -41,3 +41,16 @@ SET status = $2,
 WHERE id = $1
 RETURNING id, email, phone, password_hash, display_name, avatar_file_id, status,
     last_login_at, created_at, updated_at;
+
+-- name: CreateUserSession :one
+INSERT INTO user_sessions (
+    id,
+    user_id,
+    refresh_token_hash,
+    ip_address,
+    user_agent,
+    expires_at
+) VALUES (
+    $1, $2, $3, $4, $5, $6
+)
+RETURNING id;

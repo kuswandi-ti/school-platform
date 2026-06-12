@@ -30,3 +30,9 @@ sqlc generate
 ```
 
 Repository integration tests use the same `IDENTITY_TEST_DATABASE_URL` and create isolated temporary schemas.
+
+## Login RPC
+
+Identity Service exposes `schoolplatform.identity.v1.IdentityService/Login` over gRPC. It verifies credentials, rejects inactive accounts, issues Ed25519 access tokens, and stores only the SHA-256 hash of the opaque refresh token.
+
+JWT private keys must be supplied through `JWT_PRIVATE_KEY_PATH` and must never be committed.

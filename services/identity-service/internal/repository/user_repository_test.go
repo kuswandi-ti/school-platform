@@ -21,7 +21,7 @@ import (
 )
 
 func TestUserRepository(t *testing.T) {
-	repo, ctx := newTestRepository(t)
+	repo, _, ctx := newTestRepository(t)
 
 	passwordHash, err := password.Hash("repository test password")
 	require.NoError(t, err)
@@ -64,7 +64,7 @@ func TestUserRepository(t *testing.T) {
 }
 
 func TestUserRepositoryRejectsDuplicateEmailIgnoringCase(t *testing.T) {
-	repo, ctx := newTestRepository(t)
+	repo, _, ctx := newTestRepository(t)
 	passwordHash, err := password.Hash("repository test password")
 	require.NoError(t, err)
 
@@ -88,7 +88,7 @@ func TestUserRepositoryRejectsDuplicateEmailIgnoringCase(t *testing.T) {
 }
 
 func TestUserRepositoryReturnsNotFound(t *testing.T) {
-	repo, ctx := newTestRepository(t)
+	repo, _, ctx := newTestRepository(t)
 
 	_, err := repo.FindByID(ctx, uuid.New())
 	require.ErrorIs(t, err, pgx.ErrNoRows)
@@ -97,7 +97,30 @@ func TestUserRepositoryReturnsNotFound(t *testing.T) {
 	require.ErrorIs(t, err, pgx.ErrNoRows)
 }
 
-func newTestRepository(t *testing.T) (*repository.UserRepository, context.Context) {
+func TestSessionRepositoryStoresRefreshTokenHash(t *testing.T) {
+	users, pool, ctx := newTestRepository(t)
+	passwordHash, err := password.Hash("repository test password")
+	require.NoError(t, err)
+	userID := uuid.New()
+	_, err = users.CreateUser(ctx, repository.CreateUserParams{
+		ID: userID, Email: "session@example.com", PasswordHash: passwordHash,
+		DisplayName: "Session User", Status: "active",
+	})
+	require.NoError(t, err)
+
+	refreshTokenHash := "stored-refresh-token-hash"
+	err = repository.NewSessionRepository(pool).CreateSession(ctx, repository.CreateSessionParams{
+		ID: uuid.New(), UserID: userID, RefreshTokenHash: refreshTokenHash,
+		ExpiresAt: time.Now().UTC().Add(24 * time.Hour),
+	})
+	require.NoError(t, err)
+
+	var storedHash string
+	require.NoError(t, pool.QueryRow(ctx, "SELECT refresh_token_hash FROM user_sessions WHERE user_id = $1", userID).Scan(&storedHash))
+	require.Equal(t, refreshTokenHash, storedHash)
+}
+
+func newTestRepository(t *testing.T) (*repository.UserRepository, *pgxpool.Pool, context.Context) {
 	t.Helper()
 	databaseURL := os.Getenv("IDENTITY_TEST_DATABASE_URL")
 	if databaseURL == "" {
@@ -143,5 +166,5 @@ func newTestRepository(t *testing.T) (*repository.UserRepository, context.Contex
 	t.Cleanup(pool.Close)
 	require.NoError(t, pool.Ping(ctx))
 
-	return repository.NewUserRepository(pool), ctx
+	return repository.NewUserRepository(pool), pool, ctx
 }

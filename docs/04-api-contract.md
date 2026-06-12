@@ -1008,6 +1008,30 @@ GET  /api/v1/me/permissions
 GET  /api/v1/me/context
 ```
 
+Login request:
+
+```json
+{
+  "email": "user@example.com",
+  "password": "user-provided-password"
+}
+```
+
+Login success data:
+
+```json
+{
+  "user_id": "uuid",
+  "display_name": "User Name",
+  "access_token": "jwt",
+  "refresh_token": "opaque-token",
+  "token_type": "Bearer",
+  "expires_in": 900
+}
+```
+
+Login errors use `VALIDATION_ERROR`, `UNAUTHORIZED`, `FORBIDDEN`, or `SERVICE_UNAVAILABLE` in the standard response envelope. Password hashes are never returned.
+
 Catatan:
 
 ```text
