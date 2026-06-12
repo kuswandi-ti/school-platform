@@ -22,7 +22,7 @@ func AccessLog(logger *slog.Logger) func(http.Handler) http.Handler {
 				slog.String("method", r.Method),
 				slog.String("path", r.URL.Path),
 				slog.Int("status", recorder.statusCode),
-				slog.Duration("duration", time.Since(startedAt)),
+				slog.Int64("duration_ms", time.Since(startedAt).Milliseconds()),
 				slog.String("request_id", RequestIDFromContext(r.Context())),
 				slog.String("correlation_id", CorrelationIDFromContext(r.Context())),
 			)

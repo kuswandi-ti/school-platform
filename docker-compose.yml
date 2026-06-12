@@ -96,12 +96,67 @@ services:
     networks:
       - school-platform-local
 
+  prometheus:
+    image: prom/prometheus:v2.53.1
+    container_name: school-platform-prometheus
+    restart: unless-stopped
+    profiles:
+      - observability
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./infra/observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - school-platform-local
+
+  grafana:
+    image: grafana/grafana:11.1.0
+    container_name: school-platform-grafana
+    restart: unless-stopped
+    profiles:
+      - observability
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-school_local_admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-school_local_password}
+    ports:
+      - "${GRAFANA_PORT:-3001}:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+      - loki
+    networks:
+      - school-platform-local
+
+  loki:
+    image: grafana/loki:3.0.0
+    container_name: school-platform-loki
+    restart: unless-stopped
+    profiles:
+      - observability
+    command:
+      - -config.file=/etc/loki/config.yml
+    ports:
+      - "${LOKI_PORT:-3100}:3100"
+    volumes:
+      - ./infra/observability/loki/config.yml:/etc/loki/config.yml:ro
+      - loki_data:/loki
+    networks:
+      - school-platform-local
+
 volumes:
   postgres_data:
   redis_data:
   rabbitmq_data:
   minio_data:
   mailpit_data:
+  prometheus_data:
+  grafana_data:
+  loki_data:
 
 networks:
   school-platform-local:

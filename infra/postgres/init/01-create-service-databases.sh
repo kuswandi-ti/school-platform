@@ -12,7 +12,9 @@ service_databases=(
 )
 
 for database in "${service_databases[@]}"; do
-  psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-SQL
-    CREATE DATABASE "$database" OWNER "$POSTGRES_USER";
-SQL
+  if psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" -tAc "SELECT 1 FROM pg_database WHERE datname = '$database'" | grep -q 1; then
+    echo "Database $database already exists"
+  else
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" -c "CREATE DATABASE \"$database\" OWNER \"$POSTGRES_USER\";"
+  fi
 done

@@ -37,4 +37,11 @@ Open the console:
 http://localhost:9001
 ```
 
+Use the local credentials from `.env.example`:
+
+```text
+Username: school_local_minio
+Password: school_local_minio_password
+```
+
 Bucket creation is intentionally not included in this task. Add buckets in a later storage setup task or through service-specific setup scripts.

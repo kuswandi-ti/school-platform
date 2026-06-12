@@ -82,6 +82,7 @@ Rules:
 - Do not commit production credentials.
 - Do not commit private keys.
 - Do not use production secrets locally.
+- Production secrets must come from environment injection or a secrets manager.
 - Use synthetic or dummy local data only.
 
 ## Docker Compose Startup

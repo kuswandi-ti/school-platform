@@ -396,6 +396,15 @@ Restart:
 make restart
 ```
 
+Optional local observability profile:
+
+```bash
+docker compose --profile observability up -d
+docker compose --profile observability ps
+```
+
+This profile is intentionally optional in Sprint 0 so normal local setup stays lightweight.
+
 ---
 
 ## 9. Local Services and Ports
@@ -413,6 +422,9 @@ MinIO API           : http://localhost:9000
 MinIO Console       : http://localhost:9001
 Mailpit SMTP        : localhost:1025
 Mailpit UI          : http://localhost:8025
+Prometheus optional : http://localhost:9090
+Grafana optional    : http://localhost:3001
+Loki optional       : http://localhost:3100
 ```
 
 RabbitMQ local login example:

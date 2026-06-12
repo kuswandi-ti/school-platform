@@ -6,6 +6,7 @@ info:
 servers:
   - url: http://localhost:8080
     description: Local development
+security: []
 paths:
   /healthz:
     get:
@@ -25,6 +26,17 @@ paths:
       responses:
         "200":
           description: Service is ready.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardResponse"
+  /metrics:
+    get:
+      operationId: getMetrics
+      summary: Placeholder metrics path
+      responses:
+        "200":
+          description: Reserved local metrics placeholder response.
           content:
             application/json:
               schema:
@@ -53,7 +65,9 @@ components:
           description: Response payload.
         meta:
           description: Pagination or response metadata.
-          nullable: true
+          anyOf:
+            - type: object
+            - type: "null"
         error:
           anyOf:
             - $ref: "#/components/schemas/ErrorBody"
@@ -73,4 +87,6 @@ components:
           example: Data yang dikirim tidak valid.
         details:
           description: Structured error details.
-          nullable: true
+          anyOf:
+            - type: object
+            - type: "null"

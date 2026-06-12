@@ -20,6 +20,7 @@ Thumbs.db
 # Go
 bin/
 coverage.out
+coverage/
 
 # Node / Next.js
 node_modules/
@@ -39,3 +40,11 @@ build/
 # Local data
 tmp/
 storage/
+
+# Backup / temporary files
+*.bak
+*.backup
+*.old
+*.orig
+*.tmp
+*~

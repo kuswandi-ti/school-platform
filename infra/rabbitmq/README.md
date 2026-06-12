@@ -42,3 +42,16 @@ Open the management UI:
 ```text
 http://localhost:15672
 ```
+
+Use the local credentials from `.env.example`:
+
+```text
+Username: school_local
+Password: school_local_password
+```
+
+Local AMQP URL:
+
+```text
+amqp://school_local:school_local_password@localhost:5672/
+```

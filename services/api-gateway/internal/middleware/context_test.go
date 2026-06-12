@@ -36,3 +36,29 @@ func TestRequestContextUsesIncomingHeaders(t *testing.T) {
 		t.Fatalf("expected response correlation ID header")
 	}
 }
+
+func TestRequestContextDefaultsCorrelationIDToRequestID(t *testing.T) {
+	var gotRequestID string
+	var gotCorrelationID string
+
+	handler := RequestContext(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotRequestID = RequestIDFromContext(r.Context())
+		gotCorrelationID = CorrelationIDFromContext(r.Context())
+		w.WriteHeader(http.StatusNoContent)
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if gotRequestID == "" {
+		t.Fatal("expected generated request ID")
+	}
+	if gotCorrelationID == "" {
+		t.Fatal("expected generated correlation ID")
+	}
+	if gotRequestID != gotCorrelationID {
+		t.Fatalf("expected correlation ID to default to request ID, got request=%q correlation=%q", gotRequestID, gotCorrelationID)
+	}
+}

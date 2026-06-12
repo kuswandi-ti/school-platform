@@ -11,7 +11,12 @@ import (
 type Config struct {
 	ServiceName     string
 	AppEnv          string
+	HTTPPort        string
 	HTTPAddr        string
+	GRPCPort        string
+	DatabaseURL     string
+	RedisURL        string
+	RabbitMQURL     string
 	LogLevel        string
 	ShutdownTimeout time.Duration
 }
@@ -25,13 +30,21 @@ func Load() (Config, error) {
 	cfg := Config{
 		ServiceName:     stringFromEnv("SERVICE_NAME", "_template-service"),
 		AppEnv:          stringFromEnv("APP_ENV", "local"),
-		HTTPAddr:        stringFromEnv("HTTP_ADDR", ":8081"),
+		HTTPPort:        stringFromEnv("HTTP_PORT", "8081"),
+		GRPCPort:        stringFromEnv("GRPC_PORT", "9081"),
+		DatabaseURL:     stringFromEnv("DATABASE_URL", "postgres://school_local:school_local_password@localhost:5432/template_service_db?sslmode=disable"),
+		RedisURL:        stringFromEnv("REDIS_URL", "redis://localhost:6379/0"),
+		RabbitMQURL:     stringFromEnv("RABBITMQ_URL", "amqp://school_local:school_local_password@localhost:5672/"),
 		LogLevel:        strings.ToLower(stringFromEnv("LOG_LEVEL", "info")),
 		ShutdownTimeout: time.Duration(shutdownSeconds) * time.Second,
 	}
+	cfg.HTTPAddr = httpAddrFromEnv(cfg.HTTPPort)
 
 	if cfg.ServiceName == "" {
 		return Config{}, fmt.Errorf("SERVICE_NAME is required")
+	}
+	if cfg.HTTPPort == "" {
+		return Config{}, fmt.Errorf("HTTP_PORT is required")
 	}
 	if cfg.HTTPAddr == "" {
 		return Config{}, fmt.Errorf("HTTP_ADDR is required")
@@ -46,6 +59,14 @@ func stringFromEnv(key, fallback string) string {
 		return fallback
 	}
 	return value
+}
+
+func httpAddrFromEnv(port string) string {
+	addr := strings.TrimSpace(os.Getenv("HTTP_ADDR"))
+	if addr != "" {
+		return addr
+	}
+	return ":" + port
 }
 
 func intFromEnv(key string, fallback int) (int, error) {

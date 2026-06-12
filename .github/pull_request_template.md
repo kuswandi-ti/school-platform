@@ -71,6 +71,14 @@ Tuliskan perubahan utama:
 - 
 - 
 
+## How to Test
+
+Tuliskan langkah uji paling praktis untuk reviewer:
+
+1. 
+2. 
+3. 
+
 ## Scope
 
 Yang termasuk dalam PR ini:
@@ -223,7 +231,7 @@ docs/[active-sprint-plan].md
 docs/[active-sprint-task-prompts].md
 ```
 
-## Tests
+## Test Commands
 
 Tuliskan test yang sudah dijalankan:
 
@@ -331,7 +339,7 @@ Detail:
 
 ```
 
-## Final Checklist
+## Checklist
 
 - [ ] Scope sesuai issue
 - [ ] Out of scope tidak ikut dikerjakan

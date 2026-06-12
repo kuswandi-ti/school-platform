@@ -50,10 +50,22 @@ Example `psql` connection:
 psql "postgres://school_local:school_local_password@localhost:5432/identity_db?sslmode=disable"
 ```
 
+If `psql` is not installed on the host, use the container:
+
+```bash
+docker compose exec postgres psql -U school_local -d identity_db -c "SELECT current_database();"
+```
+
 List databases:
 
 ```bash
 psql "postgres://school_local:school_local_password@localhost:5432/school_platform_local?sslmode=disable" -c "\l"
+```
+
+Container-only equivalent:
+
+```bash
+docker compose exec postgres psql -U school_local -d school_platform_local -c "\l"
 ```
 
 If databases are not created after changing the init script, remove the local `postgres_data` Docker volume and start again. Do not do this if the local volume contains data you still need.

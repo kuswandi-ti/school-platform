@@ -71,7 +71,7 @@ lint:
 	@$(MAKE) go-each command='go vet ./...'
 
 fmt:
-	@$(MAKE) go-each command='gofmt -w $$(find . -name "*.go" -not -path "./vendor/*")'
+	@$(MAKE) go-each command='go fmt ./...'
 
 build:
 	@if [ -n "$(service)" ]; then \
@@ -82,6 +82,7 @@ build:
 		mkdir -p bin; \
 		(cd "$(SERVICE_PATH)" && go build -o "../../bin/$(service)" ./cmd/server); \
 	else \
+		set -e; \
 		for module in $(GO_MODULES); do \
 			if [ -d "$$module/cmd/server" ]; then \
 				name=$$(basename "$$module"); \
@@ -101,6 +102,15 @@ clean:
 proto:
 	@echo "Proto generation/check tooling is not configured yet."
 	@echo "Contract placeholders are under packages/proto."
+	@test -d packages/proto/common/v1
+	@test -d packages/proto/identity/v1
+	@test -d packages/proto/schoolcore/v1
+	@test -d packages/proto/admission/v1
+	@test -d packages/proto/academic/v1
+	@test -d packages/proto/finance/v1
+	@test -d packages/proto/communication/v1
+	@test -d packages/proto/reporting/v1
+	@echo "Proto placeholder directories are available."
 
 openapi-check:
 	@test -f packages/openapi/api-gateway.v1.yaml
@@ -124,6 +134,7 @@ go-each:
 			echo "No Go modules found"; \
 			exit 0; \
 		fi; \
+		set -e; \
 		for module in $(GO_MODULES); do \
 			echo "Running in $$module: $(command)"; \
 			(cd "$$module" && $(command)); \

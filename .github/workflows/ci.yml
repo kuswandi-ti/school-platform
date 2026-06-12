@@ -20,9 +20,88 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  prepare:
+    name: Prepare
+    runs-on: ubuntu-latest
+    outputs:
+      has_go: ${{ steps.detect.outputs.has_go }}
+      has_makefile: ${{ steps.detect.outputs.has_makefile }}
+      has_golangci_config: ${{ steps.detect.outputs.has_golangci_config }}
+      has_web: ${{ steps.detect.outputs.has_web }}
+      has_flutter: ${{ steps.detect.outputs.has_flutter }}
+      has_compose: ${{ steps.detect.outputs.has_compose }}
+      has_proto: ${{ steps.detect.outputs.has_proto }}
+      has_openapi: ${{ steps.detect.outputs.has_openapi }}
+      has_events: ${{ steps.detect.outputs.has_events }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect repository capabilities
+        id: detect
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if find services packages -name go.mod -not -path "*/vendor/*" -print -quit | grep -q .; then
+            echo "has_go=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_go=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if [ -f "Makefile" ]; then
+            echo "has_makefile=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_makefile=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if find . -maxdepth 2 \( -name ".golangci.yml" -o -name ".golangci.yaml" -o -name ".golangci.toml" -o -name ".golangci.json" \) -print -quit | grep -q .; then
+            echo "has_golangci_config=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_golangci_config=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if [ -f "apps/web-admin/package.json" ]; then
+            echo "has_web=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_web=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if [ -f "apps/mobile-app/pubspec.yaml" ]; then
+            echo "has_flutter=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_flutter=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if [ -f "docker-compose.yml" ]; then
+            echo "has_compose=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_compose=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if [ -d "packages/proto" ]; then
+            echo "has_proto=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_proto=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if [ -f "packages/openapi/api-gateway.v1.yaml" ]; then
+            echo "has_openapi=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_openapi=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if [ -f "packages/events/envelope.schema.json" ]; then
+            echo "has_events=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_events=false" >> "$GITHUB_OUTPUT"
+          fi
+
   repository-check:
     name: Repository Check
     runs-on: ubuntu-latest
+    needs: prepare
 
     steps:
       - name: Checkout
@@ -45,6 +124,7 @@ jobs:
             "docs/09-ai-agent-rules.md"
             "docs/10-sprint-backlog-mvp.md"
             "docs/11-github-repository-rules.md"
+            ".github/workflows/ci.yml"
           )
 
           for file in "${required_files[@]}"; do
@@ -100,6 +180,7 @@ jobs:
   yaml-check:
     name: YAML Check
     runs-on: ubuntu-latest
+    needs: prepare
 
     steps:
       - name: Checkout
@@ -110,11 +191,11 @@ jobs:
         run: |
           set -euo pipefail
 
-          files=$(find . \
+          mapfile -t files < <(find . \
             -path "./.git" -prune -o \
             -type f \( -name "*.yml" -o -name "*.yaml" \) -print | sort)
 
-          if [ -z "$files" ]; then
+          if [ "${#files[@]}" -eq 0 ]; then
             echo "No YAML files found."
             exit 0
           fi
@@ -131,74 +212,98 @@ jobs:
               end
             end
             puts "Validated #{ARGV.length} YAML file(s)."
-          ' $files
+          ' "${files[@]}"
 
   go-check:
     name: Go Check
     runs-on: ubuntu-latest
+    needs: prepare
+    if: needs.prepare.outputs.has_go == 'true'
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Detect Go modules
-        id: detect
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          modules=$(find services packages -name go.mod -not -path "*/vendor/*" -print | sort)
-
-          if [ -z "$modules" ]; then
-            echo "has_go=false" >> "$GITHUB_OUTPUT"
-            echo "No Go modules found. Skipping Go checks."
-          else
-            echo "has_go=true" >> "$GITHUB_OUTPUT"
-            echo "Go modules found:"
-            echo "$modules"
-          fi
-
       - name: Setup Go
-        if: steps.detect.outputs.has_go == 'true'
         uses: actions/setup-go@v5
         with:
           go-version: "1.23.x"
           cache: false
 
-      - name: Run gofmt, go vet, and go test
-        if: steps.detect.outputs.has_go == 'true'
+      - name: Run gofmt check
         shell: bash
         run: |
           set -euo pipefail
 
           while IFS= read -r mod_file; do
             module_dir=$(dirname "$mod_file")
-            echo "Checking Go module: $module_dir"
+            echo "Checking formatting in: $module_dir"
 
             pushd "$module_dir" >/dev/null
 
-            unformatted=$(gofmt -l $(find . -name "*.go" -not -path "./vendor/*"))
+            mapfile -t go_files < <(find . -name "*.go" -not -path "./vendor/*" -print)
+            if [ "${#go_files[@]}" -eq 0 ]; then
+              echo "No Go files found in $module_dir"
+              popd >/dev/null
+              continue
+            fi
+
+            unformatted=$(gofmt -l "${go_files[@]}")
             if [ -n "$unformatted" ]; then
               echo "The following Go files need gofmt:"
               echo "$unformatted"
               exit 1
             fi
 
-            go vet ./...
-            go test ./... -count=1
-
             popd >/dev/null
           done < <(find services packages -name go.mod -not -path "*/vendor/*" -print | sort)
+
+      - name: Run go vet
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          while IFS= read -r mod_file; do
+            module_dir=$(dirname "$mod_file")
+            echo "Running go vet in: $module_dir"
+            (cd "$module_dir" && go vet ./...)
+          done < <(find services packages -name go.mod -not -path "*/vendor/*" -print | sort)
+
+      - name: Run go test
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          while IFS= read -r mod_file; do
+            module_dir=$(dirname "$mod_file")
+            echo "Running go test in: $module_dir"
+            (cd "$module_dir" && go test ./... -count=1)
+          done < <(find services packages -name go.mod -not -path "*/vendor/*" -print | sort)
+
+      - name: Run golangci-lint
+        if: needs.prepare.outputs.has_golangci_config == 'true'
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.64.8
+          args: --timeout=5m
 
   contract-check:
     name: Contract Check
     runs-on: ubuntu-latest
+    needs: prepare
+    if: needs.prepare.outputs.has_proto == 'true' || needs.prepare.outputs.has_openapi == 'true' || needs.prepare.outputs.has_events == 'true'
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
       - name: Check proto placeholders
+        if: needs.prepare.outputs.has_proto == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -221,43 +326,37 @@ jobs:
             fi
           done
 
+      - name: Check proto placeholder command
+        if: needs.prepare.outputs.has_proto == 'true' && needs.prepare.outputs.has_makefile == 'true'
+        shell: bash
+        run: make proto
+
       - name: Check OpenAPI placeholder
+        if: needs.prepare.outputs.has_openapi == 'true' && needs.prepare.outputs.has_makefile == 'true'
         shell: bash
         run: make openapi-check
 
       - name: Check event schema placeholder
+        if: needs.prepare.outputs.has_events == 'true' && needs.prepare.outputs.has_makefile == 'true'
         shell: bash
         run: make event-schema-check
 
   web-check:
     name: Web Check
     runs-on: ubuntu-latest
+    needs: prepare
+    if: needs.prepare.outputs.has_web == 'true'
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Detect web app
-        id: detect
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          if [ -f "apps/web-admin/package.json" ]; then
-            echo "has_web=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "has_web=false" >> "$GITHUB_OUTPUT"
-            echo "apps/web-admin/package.json not found. Skipping web checks."
-          fi
-
       - name: Setup Node.js
-        if: steps.detect.outputs.has_web == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "20"
 
       - name: Install and check web app
-        if: steps.detect.outputs.has_web == 'true'
         shell: bash
         working-directory: apps/web-admin
         run: |
@@ -284,33 +383,20 @@ jobs:
   mobile-check:
     name: Mobile Check
     runs-on: ubuntu-latest
+    needs: prepare
+    if: needs.prepare.outputs.has_flutter == 'true'
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Detect Flutter app
-        id: detect
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          if [ -f "apps/mobile-app/pubspec.yaml" ]; then
-            echo "has_flutter=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "has_flutter=false" >> "$GITHUB_OUTPUT"
-            echo "apps/mobile-app/pubspec.yaml not found. Skipping Flutter checks."
-          fi
-
       - name: Setup Flutter
-        if: steps.detect.outputs.has_flutter == 'true'
         uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
 
       - name: Analyze and test Flutter app
-        if: steps.detect.outputs.has_flutter == 'true'
         shell: bash
         working-directory: apps/mobile-app
         run: |
@@ -322,6 +408,8 @@ jobs:
   docker-compose-check:
     name: Docker Compose Check
     runs-on: ubuntu-latest
+    needs: prepare
+    if: needs.prepare.outputs.has_compose == 'true'
 
     steps:
       - name: Checkout
@@ -329,20 +417,13 @@ jobs:
 
       - name: Validate Docker Compose config
         shell: bash
-        run: |
-          set -euo pipefail
-
-          if [ ! -f "docker-compose.yml" ]; then
-            echo "docker-compose.yml not found. Skipping."
-            exit 0
-          fi
-
-          docker compose -f docker-compose.yml config >/dev/null
+        run: docker compose -f docker-compose.yml config >/dev/null
 
   ci-result:
     name: CI Result
     runs-on: ubuntu-latest
     needs:
+      - prepare
       - repository-check
       - yaml-check
       - go-check

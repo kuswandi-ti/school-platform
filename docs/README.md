@@ -5,6 +5,18 @@ Purpose: Documentation index, reading guide, and AI Agent documentation map.
 
 ---
 
+## Quick Links
+
+- [Documentation Index](INDEX.md)
+- [Product Requirement Document](25-product-requirement-document.md)
+- [Development Plan](26-development-plan.md)
+- [Workflow](27-workflow.md)
+- [GitHub Project Management](25-github-project-management.md)
+- [Sprint 0 Plan](29-sprint-0-plan.md)
+- [Sprint 0 Task Prompts](13-sprint-0-task-prompts.md)
+
+---
+
 ## 1. Overview
 
 This folder contains the technical, product, planning, workflow, and AI Agent documentation for `school-platform`.
@@ -64,6 +76,35 @@ Recommended AI Agent reading order:
 3. docs/README.md
 4. active task/sprint document
 ```
+
+---
+
+## Mandatory Before Coding
+
+AI Agent and developers must read these documents before starting coding work:
+
+```text
+../AGENTS.md
+../SKILLS.md
+docs/README.md
+25-product-requirement-document.md
+26-development-plan.md
+27-workflow.md
+25-github-project-management.md
+09-ai-agent-rules.md
+08-coding-standard.md
+active sprint plan
+active sprint task prompt
+```
+
+For Sprint 0, the active references are:
+
+```text
+29-sprint-0-plan.md
+13-sprint-0-task-prompts.md
+```
+
+Use [INDEX.md](INDEX.md) for the condensed document map.
 
 ---
 

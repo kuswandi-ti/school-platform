@@ -94,6 +94,8 @@ Create local environment files from examples when they are available:
 
 ```bash
 cp .env.example .env
+cp services/api-gateway/.env.example services/api-gateway/.env
+cp services/_template-service/.env.example services/_template-service/.env
 ```
 
 Start local dependencies:

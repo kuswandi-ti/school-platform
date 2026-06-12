@@ -10,14 +10,10 @@
     "event_version",
     "source_service",
     "occurred_at",
-    "published_at",
-    "request_id",
     "correlation_id",
-    "actor",
     "tenant",
     "entity",
-    "payload",
-    "metadata"
+    "payload"
   ],
   "properties": {
     "event_id": {
@@ -46,24 +42,31 @@
       "format": "date-time"
     },
     "request_id": {
-      "type": "string"
+      "type": ["string", "null"]
     },
     "correlation_id": {
       "type": "string"
     },
     "actor": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["user_id", "role"],
-      "properties": {
-        "user_id": {
-          "type": "string",
-          "format": "uuid"
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["user_id", "role"],
+          "properties": {
+            "user_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "role": {
+              "type": "string"
+            }
+          }
         },
-        "role": {
-          "type": "string"
+        {
+          "type": "null"
         }
-      }
+      ]
     },
     "tenant": {
       "type": "object",
@@ -98,7 +101,7 @@
       "type": "object"
     },
     "metadata": {
-      "type": "object"
+      "type": ["object", "null"]
     }
   }
 }
