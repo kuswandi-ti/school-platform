@@ -40,3 +40,9 @@ JWT private keys must be supplied through `JWT_PRIVATE_KEY_PATH` and must never 
 Refresh token rotation revokes the consumed session row, updates `last_used_at`, and creates a new session containing only the new token hash. Reused, revoked, and expired tokens are rejected.
 
 Logout validates the actor's Ed25519 access token, verifies that the submitted refresh token belongs to that actor, and revokes the current session. A revoked refresh token cannot be used again.
+
+## Authorization Baseline
+
+Migration `000002_seed_roles_permissions.sql` idempotently seeds the seven MVP roles and their `domain.resource.action` permission baseline. `wali_kelas` is represented by a scoped teacher assignment rather than a separate role.
+
+`AuthorizationRepository` creates foundation, school, class, subject, and student-scoped role assignments. Assignment creation and the `identity.role.assigned` audit record are committed atomically. User context queries return active assignments together with deduplicated roles and permissions.

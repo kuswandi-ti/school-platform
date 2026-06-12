@@ -50,6 +50,7 @@ func TestIdentityMigrationsUpAndDown(t *testing.T) {
 	require.NoError(t, goose.SetDialect("postgres"))
 	migrationsDir := filepath.Join("..", "internal", "db", "migrations")
 	require.NoError(t, goose.Up(testDB, migrationsDir))
+	assertSeedIsIdempotent(t, ctx, testDB, filepath.Join(migrationsDir, "000002_seed_roles_permissions.sql"))
 
 	assertTables(t, ctx, testDB, []string{
 		"identity_audit_logs",
@@ -80,6 +81,7 @@ func TestIdentityMigrationsUpAndDown(t *testing.T) {
 	assertConstraint(t, ctx, testDB, "role_permissions", "role_permissions_role_permission_unique")
 	assertConstraint(t, ctx, testDB, "user_sessions", "user_sessions_refresh_token_hash_unique")
 	assertConstraint(t, ctx, testDB, "user_devices", "user_devices_user_device_unique")
+	assertSeedBaseline(t, ctx, testDB)
 
 	require.NoError(t, goose.DownTo(testDB, migrationsDir, 0))
 	assertTablesMissing(t, ctx, testDB, []string{
@@ -92,6 +94,46 @@ func TestIdentityMigrationsUpAndDown(t *testing.T) {
 		"user_sessions",
 		"users",
 	})
+}
+
+func assertSeedIsIdempotent(t *testing.T, ctx context.Context, db *sql.DB, migrationPath string) {
+	t.Helper()
+	var rolesBefore, permissionsBefore, mappingsBefore int
+	require.NoError(t, db.QueryRowContext(ctx, "SELECT COUNT(*) FROM roles").Scan(&rolesBefore))
+	require.NoError(t, db.QueryRowContext(ctx, "SELECT COUNT(*) FROM permissions").Scan(&permissionsBefore))
+	require.NoError(t, db.QueryRowContext(ctx, "SELECT COUNT(*) FROM role_permissions").Scan(&mappingsBefore))
+
+	contents, err := os.ReadFile(migrationPath)
+	require.NoError(t, err)
+	upSQL := strings.SplitN(string(contents), "-- +goose Down", 2)[0]
+	_, err = db.ExecContext(ctx, upSQL)
+	require.NoError(t, err)
+
+	var rolesAfter, permissionsAfter, mappingsAfter int
+	require.NoError(t, db.QueryRowContext(ctx, "SELECT COUNT(*) FROM roles").Scan(&rolesAfter))
+	require.NoError(t, db.QueryRowContext(ctx, "SELECT COUNT(*) FROM permissions").Scan(&permissionsAfter))
+	require.NoError(t, db.QueryRowContext(ctx, "SELECT COUNT(*) FROM role_permissions").Scan(&mappingsAfter))
+	require.Equal(t, rolesBefore, rolesAfter)
+	require.Equal(t, permissionsBefore, permissionsAfter)
+	require.Equal(t, mappingsBefore, mappingsAfter)
+}
+
+func assertSeedBaseline(t *testing.T, ctx context.Context, db *sql.DB) {
+	t.Helper()
+	var roleCount, permissionCount, invalidPermissionCount, homeroomRoleCount, rolesWithoutPermissions int
+	require.NoError(t, db.QueryRowContext(ctx, "SELECT COUNT(*) FROM roles WHERE is_system = TRUE").Scan(&roleCount))
+	require.NoError(t, db.QueryRowContext(ctx, "SELECT COUNT(*) FROM permissions").Scan(&permissionCount))
+	require.NoError(t, db.QueryRowContext(ctx, "SELECT COUNT(*) FROM permissions WHERE code !~ '^[a-z_]+\\.[a-z_]+\\.[a-z_]+$'").Scan(&invalidPermissionCount))
+	require.NoError(t, db.QueryRowContext(ctx, "SELECT COUNT(*) FROM roles WHERE code = 'wali_kelas'").Scan(&homeroomRoleCount))
+	require.NoError(t, db.QueryRowContext(ctx, `
+		SELECT COUNT(*)
+		FROM roles r
+		WHERE NOT EXISTS (SELECT 1 FROM role_permissions rp WHERE rp.role_id = r.id)`).Scan(&rolesWithoutPermissions))
+	require.Equal(t, 7, roleCount)
+	require.Equal(t, 31, permissionCount)
+	require.Zero(t, invalidPermissionCount)
+	require.Zero(t, homeroomRoleCount)
+	require.Zero(t, rolesWithoutPermissions)
 }
 
 func assertUniqueIndex(t *testing.T, ctx context.Context, db *sql.DB, indexName, expectedDefinition string) {
