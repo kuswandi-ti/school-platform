@@ -9,6 +9,7 @@ This template provides:
 - HTTP server startup
 - `GET /healthz`
 - `GET /readyz`
+- `GET /metrics`
 - request ID and correlation ID middleware
 - graceful shutdown on `SIGINT` and `SIGTERM`
 - Dockerfile for service image builds
@@ -58,7 +59,10 @@ Health checks:
 ```bash
 curl http://localhost:8081/healthz
 curl http://localhost:8081/readyz
+curl http://localhost:8081/metrics
 ```
+
+`/metrics` is a reserved placeholder endpoint for future Prometheus-style metrics. For Sprint 0, structured JSON logs remain the main local observability signal.
 
 ## Tests
 

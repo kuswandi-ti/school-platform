@@ -25,6 +25,7 @@ func NewRouter(cfg config.Config, logger *slog.Logger) http.Handler {
 
 	router.Get("/healthz", HealthHandler())
 	router.Get("/readyz", ReadinessHandler())
+	router.Get("/metrics", MetricsHandler())
 
 	router.Route("/api/v1", func(r chi.Router) {
 		r.Get("/ping", PingHandler())

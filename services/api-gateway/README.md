@@ -11,6 +11,7 @@ Do not put domain business logic or service-owned database queries in the API Ga
 ```text
 GET /healthz
 GET /readyz
+GET /metrics
 GET /api/v1/ping
 ```
 
@@ -46,8 +47,11 @@ Check:
 ```bash
 curl http://localhost:8080/healthz
 curl http://localhost:8080/readyz
+curl http://localhost:8080/metrics
 curl http://localhost:8080/api/v1/ping
 ```
+
+`/metrics` is a placeholder path reserved for future Prometheus-compatible metrics exposure. Sprint 0 keeps it lightweight and uses structured JSON logs as the main observability baseline.
 
 ## Tests
 

@@ -30,6 +30,17 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/StandardResponse"
+  /metrics:
+    get:
+      operationId: getMetrics
+      summary: Placeholder metrics path
+      responses:
+        "200":
+          description: Reserved local metrics placeholder response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardResponse"
   /api/v1/ping:
     get:
       operationId: getApiV1Ping
