@@ -37,8 +37,6 @@ func (a *App) Run() error {
 
 	a.logger.Info(
 		"starting api gateway",
-		slog.String("service", a.config.ServiceName),
-		slog.String("environment", a.config.AppEnv),
 		slog.String("http_addr", a.config.HTTPAddr),
 	)
 

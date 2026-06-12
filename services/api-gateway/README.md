@@ -39,6 +39,8 @@ Default URL:
 http://localhost:8080
 ```
 
+The local example uses `HTTP_PORT=8080`. Set `HTTP_ADDR` only when you need a full bind address such as `127.0.0.1:8080`.
+
 Check:
 
 ```bash

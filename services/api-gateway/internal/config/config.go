@@ -33,11 +33,12 @@ func Load() (Config, error) {
 	if err != nil {
 		return Config{}, err
 	}
+	httpAddr := httpAddrFromEnv()
 
 	cfg := Config{
 		ServiceName:        stringFromEnv("SERVICE_NAME", "api-gateway"),
 		AppEnv:             stringFromEnv("APP_ENV", "local"),
-		HTTPAddr:           stringFromEnv("HTTP_ADDR", ":8080"),
+		HTTPAddr:           httpAddr,
 		LogLevel:           strings.ToLower(stringFromEnv("LOG_LEVEL", "info")),
 		CORSAllowedOrigins: listFromEnv("CORS_ALLOWED_ORIGINS", []string{"http://localhost:3000"}),
 		ShutdownTimeout:    time.Duration(shutdownSeconds) * time.Second,
@@ -60,6 +61,15 @@ func Load() (Config, error) {
 	}
 
 	return cfg, nil
+}
+
+func httpAddrFromEnv() string {
+	if value := strings.TrimSpace(os.Getenv("HTTP_ADDR")); value != "" {
+		return value
+	}
+
+	port := stringFromEnv("HTTP_PORT", "8080")
+	return ":" + strings.TrimPrefix(port, ":")
 }
 
 func stringFromEnv(key, fallback string) string {
