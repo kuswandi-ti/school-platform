@@ -15,6 +15,24 @@ This template provides:
 
 It intentionally does not include business logic, database repositories, authentication, gRPC, or domain modules.
 
+## Structure
+
+```text
+cmd/server/                 service entrypoint
+internal/app/               application bootstrap and graceful shutdown
+internal/config/            environment-based configuration
+internal/logger/            slog JSON logger setup
+internal/transport/http/    HTTP router, middleware, and health handlers
+internal/domain/            future domain models and rules
+internal/usecase/           future application use cases and authorization coordination
+internal/repository/        future service-owned persistence adapters
+internal/event/             future event publisher/consumer adapters
+internal/authz/             future authorization helpers
+internal/audit/             future audit integration
+internal/db/                future migrations, queries, and generated sqlc code
+tests/                      future integration or black-box tests
+```
+
 ## Local Run
 
 Copy local environment values:
@@ -71,5 +89,7 @@ When creating a new service:
 1. Copy `services/_template-service` to `services/<service-name>`.
 2. Update `go.mod` module name.
 3. Update `SERVICE_NAME` in `.env.example`.
-4. Keep business logic inside `internal/domain` and `internal/usecase` when those folders are introduced.
-5. Keep transport concerns out of business logic.
+4. Update `HTTP_PORT` if the new service needs a different local port.
+5. Keep business logic inside `internal/domain` and `internal/usecase`.
+6. Keep repository code scoped to the service-owned database only.
+7. Keep transport concerns out of business logic.
