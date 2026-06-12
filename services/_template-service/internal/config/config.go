@@ -13,6 +13,10 @@ type Config struct {
 	AppEnv          string
 	HTTPPort        string
 	HTTPAddr        string
+	GRPCPort        string
+	DatabaseURL     string
+	RedisURL        string
+	RabbitMQURL     string
 	LogLevel        string
 	ShutdownTimeout time.Duration
 }
@@ -27,6 +31,10 @@ func Load() (Config, error) {
 		ServiceName:     stringFromEnv("SERVICE_NAME", "_template-service"),
 		AppEnv:          stringFromEnv("APP_ENV", "local"),
 		HTTPPort:        stringFromEnv("HTTP_PORT", "8081"),
+		GRPCPort:        stringFromEnv("GRPC_PORT", "9081"),
+		DatabaseURL:     stringFromEnv("DATABASE_URL", "postgres://school_local:school_local_password@localhost:5432/template_service_db?sslmode=disable"),
+		RedisURL:        stringFromEnv("REDIS_URL", "redis://localhost:6379/0"),
+		RabbitMQURL:     stringFromEnv("RABBITMQ_URL", "amqp://school_local:school_local_password@localhost:5672/"),
 		LogLevel:        strings.ToLower(stringFromEnv("LOG_LEVEL", "info")),
 		ShutdownTimeout: time.Duration(shutdownSeconds) * time.Second,
 	}

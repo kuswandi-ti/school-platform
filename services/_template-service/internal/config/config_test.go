@@ -10,6 +10,10 @@ func TestLoad_UsesHTTPPort(t *testing.T) {
 	t.Setenv("APP_ENV", "test")
 	t.Setenv("HTTP_PORT", "8181")
 	t.Setenv("HTTP_ADDR", "")
+	t.Setenv("GRPC_PORT", "9181")
+	t.Setenv("DATABASE_URL", "postgres://user:pass@localhost:5432/sample_db?sslmode=disable")
+	t.Setenv("REDIS_URL", "redis://localhost:6379/1")
+	t.Setenv("RABBITMQ_URL", "amqp://user:pass@localhost:5672/")
 	t.Setenv("LOG_LEVEL", "debug")
 	t.Setenv("SHUTDOWN_TIMEOUT_SECONDS", "7")
 
@@ -29,6 +33,18 @@ func TestLoad_UsesHTTPPort(t *testing.T) {
 	}
 	if cfg.HTTPAddr != ":8181" {
 		t.Fatalf("expected HTTP addr :8181, got %q", cfg.HTTPAddr)
+	}
+	if cfg.GRPCPort != "9181" {
+		t.Fatalf("expected GRPC port 9181, got %q", cfg.GRPCPort)
+	}
+	if cfg.DatabaseURL != "postgres://user:pass@localhost:5432/sample_db?sslmode=disable" {
+		t.Fatalf("expected database URL override, got %q", cfg.DatabaseURL)
+	}
+	if cfg.RedisURL != "redis://localhost:6379/1" {
+		t.Fatalf("expected Redis URL override, got %q", cfg.RedisURL)
+	}
+	if cfg.RabbitMQURL != "amqp://user:pass@localhost:5672/" {
+		t.Fatalf("expected RabbitMQ URL override, got %q", cfg.RabbitMQURL)
 	}
 	if cfg.LogLevel != "debug" {
 		t.Fatalf("expected log level debug, got %q", cfg.LogLevel)

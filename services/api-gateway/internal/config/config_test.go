@@ -29,3 +29,16 @@ func TestLoadPrefersHTTPAddrOverHTTPPort(t *testing.T) {
 		t.Fatalf("expected HTTP address 127.0.0.1:19090, got %q", cfg.HTTPAddr)
 	}
 }
+
+func TestLoadUsesConfiguredJWTPublicKeyPath(t *testing.T) {
+	t.Setenv("JWT_PUBLIC_KEY_PATH", "./certs/local-public.pem")
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("expected config to load, got error: %v", err)
+	}
+
+	if cfg.JWTPublicKeyPath != "./certs/local-public.pem" {
+		t.Fatalf("expected JWT public key path override, got %q", cfg.JWTPublicKeyPath)
+	}
+}

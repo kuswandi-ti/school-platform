@@ -14,6 +14,7 @@ type Config struct {
 	HTTPAddr           string
 	LogLevel           string
 	CORSAllowedOrigins []string
+	JWTPublicKeyPath   string
 	ShutdownTimeout    time.Duration
 	GRPCTargets        GRPCTargets
 }
@@ -41,6 +42,7 @@ func Load() (Config, error) {
 		HTTPAddr:           httpAddr,
 		LogLevel:           strings.ToLower(stringFromEnv("LOG_LEVEL", "info")),
 		CORSAllowedOrigins: listFromEnv("CORS_ALLOWED_ORIGINS", []string{"http://localhost:3000"}),
+		JWTPublicKeyPath:   stringFromEnv("JWT_PUBLIC_KEY_PATH", "./secrets/jwt/public.pem"),
 		ShutdownTimeout:    time.Duration(shutdownSeconds) * time.Second,
 		GRPCTargets: GRPCTargets{
 			Identity:      stringFromEnv("IDENTITY_GRPC_ADDR", "localhost:9101"),
