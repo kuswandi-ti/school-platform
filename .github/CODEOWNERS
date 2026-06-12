@@ -5,84 +5,87 @@
 # Automatically request reviews from responsible owners when files change.
 #
 # Notes:
-# - Replace or extend @kuswandi-ti with the correct GitHub usernames or teams when the team is finalized.
+# - Replace or extend the placeholder owners below with the correct GitHub usernames or teams when the team is finalized.
 # - CODEOWNERS requires matching users/teams to have repository access.
 # - If using a GitHub Organization, team format is: @org/team-name
+# - Placeholder examples used here:
+#   - @your-github-username
+#   - @your-org/backend-team
 
 # -------------------------------------------------------------------
 # Global fallback owner
 # -------------------------------------------------------------------
-*                                   @kuswandi-ti
+*                                   @your-github-username
 
 # -------------------------------------------------------------------
 # Documentation
 # -------------------------------------------------------------------
-/README.md                          @kuswandi-ti
-/AGENTS.md                          @kuswandi-ti
-/SKILLS.md                          @kuswandi-ti
-/docs/                              @kuswandi-ti
+/README.md                          @your-github-username
+/AGENTS.md                          @your-github-username
+/SKILLS.md                          @your-github-username
+/docs/                              @your-github-username
 
 # -------------------------------------------------------------------
 # GitHub configuration and CI/CD
 # -------------------------------------------------------------------
-/.github/                           @kuswandi-ti
-/.github/workflows/                 @kuswandi-ti
-/.github/ISSUE_TEMPLATE/            @kuswandi-ti
-/.github/pull_request_template.md   @kuswandi-ti
+/.github/                           @your-github-username
+/.github/workflows/                 @your-github-username
+/.github/ISSUE_TEMPLATE/            @your-github-username
+/.github/pull_request_template.md   @your-github-username
 
 # -------------------------------------------------------------------
 # Infrastructure and deployment
 # -------------------------------------------------------------------
-/infra/                             @kuswandi-ti
-/deploy/                            @kuswandi-ti
-/docker-compose*.yml                @kuswandi-ti
-/Makefile                           @kuswandi-ti
+/infra/                             @your-github-username
+/deploy/                            @your-github-username
+/docker-compose*.yml                @your-github-username
+/Makefile                           @your-github-username
 
 # -------------------------------------------------------------------
 # Backend services
 # -------------------------------------------------------------------
-/services/                          @kuswandi-ti
-/services/api-gateway/              @kuswandi-ti
-/services/identity-service/         @kuswandi-ti
-/services/school-core-service/      @kuswandi-ti
-/services/admission-service/        @kuswandi-ti
-/services/academic-service/         @kuswandi-ti
-/services/finance-service/          @kuswandi-ti
-/services/communication-service/    @kuswandi-ti
-/services/reporting-service/        @kuswandi-ti
+/services/                          @your-github-username
+/services/api-gateway/              @your-github-username
+/services/identity-service/         @your-github-username
+/services/school-core-service/      @your-github-username
+/services/admission-service/        @your-github-username
+/services/academic-service/         @your-github-username
+/services/finance-service/          @your-github-username
+/services/communication-service/    @your-github-username
+/services/reporting-service/        @your-github-username
 
 # -------------------------------------------------------------------
 # Shared packages and contracts
 # -------------------------------------------------------------------
-/packages/                          @kuswandi-ti
-/packages/proto/                    @kuswandi-ti
-/packages/openapi/                  @kuswandi-ti
-/packages/events/                   @kuswandi-ti
-/packages/shared-go/                @kuswandi-ti
+/packages/                          @your-github-username
+/packages/proto/                    @your-github-username
+/packages/openapi/                  @your-github-username
+/packages/events/                   @your-github-username
+/packages/shared-go/                @your-github-username
 
 # -------------------------------------------------------------------
 # Web frontend
 # -------------------------------------------------------------------
-/apps/web-admin/                    @kuswandi-ti
+/apps/web-admin/                    @your-github-username
 
 # -------------------------------------------------------------------
 # Mobile app
 # -------------------------------------------------------------------
-/apps/mobile-app/                   @kuswandi-ti
+/apps/mobile-app/                   @your-github-username
 
 # -------------------------------------------------------------------
 # Database migrations and SQL queries
 # -------------------------------------------------------------------
-/services/**/migrations/            @kuswandi-ti
-/services/**/queries/               @kuswandi-ti
-/services/**/sqlc.yaml              @kuswandi-ti
+/services/**/migrations/            @your-github-username
+/services/**/queries/               @your-github-username
+/services/**/sqlc.yaml              @your-github-username
 
 # -------------------------------------------------------------------
 # Security-sensitive areas
 # -------------------------------------------------------------------
-/services/identity-service/         @kuswandi-ti
-/services/finance-service/          @kuswandi-ti
-/services/**/internal/auth*/        @kuswandi-ti
-/services/**/internal/security*/    @kuswandi-ti
-/services/**/internal/audit*/       @kuswandi-ti
-/services/**/internal/approval*/    @kuswandi-ti
+/services/identity-service/         @your-github-username
+/services/finance-service/          @your-github-username
+/services/**/internal/auth*/        @your-github-username
+/services/**/internal/security*/    @your-github-username
+/services/**/internal/audit*/       @your-github-username
+/services/**/internal/approval*/    @your-github-username
