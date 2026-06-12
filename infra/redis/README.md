@@ -26,3 +26,9 @@ docker compose exec redis redis-cli ping
 ```
 
 Redis local data is stored in the named Docker volume `redis_data`.
+
+Local Redis URL:
+
+```text
+redis://localhost:6379/0
+```
