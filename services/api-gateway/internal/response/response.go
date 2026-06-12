@@ -18,9 +18,12 @@ type ErrorBody struct {
 }
 
 const (
-	CodeInternalError   = "INTERNAL_ERROR"
-	CodeNotFound        = "NOT_FOUND"
-	CodeValidationError = "VALIDATION_ERROR"
+	CodeInternalError      = "INTERNAL_ERROR"
+	CodeNotFound           = "NOT_FOUND"
+	CodeValidationError    = "VALIDATION_ERROR"
+	CodeUnauthorized       = "UNAUTHORIZED"
+	CodeForbidden          = "FORBIDDEN"
+	CodeServiceUnavailable = "SERVICE_UNAVAILABLE"
 )
 
 func JSON(w http.ResponseWriter, status int, data any, meta any) {

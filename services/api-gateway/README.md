@@ -2,7 +2,7 @@
 
 Custom Go API Gateway for `school-platform`.
 
-The gateway is the single external REST/JSON entrypoint for Next.js and Flutter. It owns edge concerns such as request routing, response standardization, request ID and correlation ID propagation, logging, CORS, and future REST-to-gRPC mapping.
+The gateway is the single external REST/JSON entrypoint for Next.js and Flutter. It owns edge concerns such as request routing, response standardization, request ID and correlation ID propagation, access token validation, logging, CORS, and future REST-to-gRPC mapping.
 
 Do not put domain business logic or service-owned database queries in the API Gateway.
 
@@ -13,6 +13,9 @@ GET /healthz
 GET /readyz
 GET /metrics
 GET /api/v1/ping
+POST /api/v1/auth/login
+POST /api/v1/auth/refresh
+POST /api/v1/auth/logout
 ```
 
 `/api/v1/ping` returns the standard response envelope:
@@ -68,4 +71,4 @@ docker run --rm -p 8080:8080 --env-file .env school-platform-api-gateway
 
 ## Future Work
 
-Sprint 1 will add authentication and Identity Service integration. Later service clients should be placed behind explicit REST-to-gRPC adapters and must not introduce domain business rules into the gateway.
+Later service clients should be placed behind explicit REST-to-gRPC adapters and must not introduce domain business rules into the gateway. Module-level authorization and actor metadata forwarding to downstream services remain service-side concerns and can evolve without turning the gateway into a business logic layer.

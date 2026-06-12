@@ -6,12 +6,13 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"school-platform/services/api-gateway/internal/client"
 	"school-platform/services/api-gateway/internal/config"
 	"school-platform/services/api-gateway/internal/middleware"
 	"school-platform/services/api-gateway/internal/response"
 )
 
-func NewRouter(cfg config.Config, logger *slog.Logger) http.Handler {
+func NewRouter(cfg config.Config, logger *slog.Logger, identityClient client.Identity, authValidator *middleware.JWTValidator) http.Handler {
 	router := chi.NewRouter()
 
 	router.Use(middleware.RequestContext)
@@ -29,6 +30,9 @@ func NewRouter(cfg config.Config, logger *slog.Logger) http.Handler {
 
 	router.Route("/api/v1", func(r chi.Router) {
 		r.Get("/ping", PingHandler())
+		r.Post("/auth/login", LoginHandler(identityClient))
+		r.Post("/auth/refresh", RefreshHandler(identityClient))
+		r.With(middleware.RequireAuth(authValidator)).Post("/auth/logout", LogoutHandler(identityClient))
 	})
 
 	return router

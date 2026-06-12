@@ -1,5 +1,12 @@
 # Identity Proto v1
 
-Placeholder for `schoolplatform.identity.v1`.
+Contracts for `schoolplatform.identity.v1`.
 
-Future contracts may cover token validation, user context, roles, and permissions. Do not add final RPC definitions until Sprint 1 Identity scope is active.
+Current RPCs:
+
+```text
+Login
+Refresh
+```
+
+Passwords and tokens are accepted only by the authentication RPCs that require them and must never be logged or published in events.

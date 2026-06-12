@@ -52,8 +52,239 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/StandardResponse"
+  /api/v1/auth/login:
+    post:
+      operationId: postApiV1AuthLogin
+      summary: Login with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginSuccessResponse"
+        "400":
+          description: Invalid request payload.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardResponse"
+        "401":
+          description: Invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardResponse"
+        "403":
+          description: User account is inactive or locked.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardResponse"
+  /api/v1/auth/refresh:
+    post:
+      operationId: postApiV1AuthRefresh
+      summary: Rotate a refresh token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshRequest"
+      responses:
+        "200":
+          description: Refresh token rotated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RefreshSuccessResponse"
+        "400":
+          description: Invalid request payload.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardResponse"
+        "401":
+          description: Refresh token is invalid, expired, revoked, or reused.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardResponse"
+  /api/v1/auth/logout:
+    post:
+      operationId: postApiV1AuthLogout
+      summary: Revoke the current user session
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LogoutRequest"
+      responses:
+        "200":
+          description: Current session revoked successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LogoutSuccessResponse"
+        "400":
+          description: Invalid request payload.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardResponse"
+        "401":
+          description: Access token or session is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardResponse"
+        "403":
+          description: Session does not belong to the authenticated actor.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardResponse"
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
+    LoginRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
+        password:
+          type: string
+          format: password
+          maxLength: 1024
+    LoginData:
+      type: object
+      required:
+        - user_id
+        - display_name
+        - access_token
+        - refresh_token
+        - token_type
+        - expires_in
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        display_name:
+          type: string
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        token_type:
+          type: string
+          const: Bearer
+        expires_in:
+          type: integer
+          format: int64
+          minimum: 1
+    LoginSuccessResponse:
+      type: object
+      required:
+        - data
+        - meta
+        - error
+      properties:
+        data:
+          $ref: "#/components/schemas/LoginData"
+        meta:
+          type: "null"
+        error:
+          type: "null"
+    RefreshRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - refresh_token
+      properties:
+        refresh_token:
+          type: string
+          maxLength: 1024
+    RefreshData:
+      type: object
+      required:
+        - access_token
+        - refresh_token
+        - token_type
+        - expires_in
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        token_type:
+          type: string
+          const: Bearer
+        expires_in:
+          type: integer
+          format: int64
+          minimum: 1
+    RefreshSuccessResponse:
+      type: object
+      required:
+        - data
+        - meta
+        - error
+      properties:
+        data:
+          $ref: "#/components/schemas/RefreshData"
+        meta:
+          type: "null"
+        error:
+          type: "null"
+    LogoutRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - refresh_token
+      properties:
+        refresh_token:
+          type: string
+          maxLength: 1024
+    LogoutData:
+      type: object
+      required:
+        - logged_out
+      properties:
+        logged_out:
+          type: boolean
+          const: true
+    LogoutSuccessResponse:
+      type: object
+      required:
+        - data
+        - meta
+        - error
+      properties:
+        data:
+          $ref: "#/components/schemas/LogoutData"
+        meta:
+          type: "null"
+        error:
+          type: "null"
     StandardResponse:
       type: object
       required:
