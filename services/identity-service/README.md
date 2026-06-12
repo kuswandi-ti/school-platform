@@ -38,3 +38,5 @@ Identity Service exposes `schoolplatform.identity.v1.IdentityService/Login` over
 JWT private keys must be supplied through `JWT_PRIVATE_KEY_PATH` and must never be committed.
 
 Refresh token rotation revokes the consumed session row, updates `last_used_at`, and creates a new session containing only the new token hash. Reused, revoked, and expired tokens are rejected.
+
+Logout validates the actor's Ed25519 access token, verifies that the submitted refresh token belongs to that actor, and revokes the current session. A revoked refresh token cannot be used again.

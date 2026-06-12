@@ -61,8 +61,9 @@ func (a *App) Run(ctx context.Context) error {
 		return err
 	}
 	refresh := usecase.NewRefresh(users, sessions, tokenIssuer)
+	logout := usecase.NewLogout(sessions, tokenIssuer)
 	server := grpc.NewServer()
-	identityv1.RegisterIdentityServiceServer(server, grpctransport.NewIdentityServer(login, refresh))
+	identityv1.RegisterIdentityServiceServer(server, grpctransport.NewIdentityServer(login, refresh, logout))
 
 	listener, err := net.Listen("tcp", a.config.GRPCAddr)
 	if err != nil {

@@ -116,7 +116,49 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/StandardResponse"
+  /api/v1/auth/logout:
+    post:
+      operationId: postApiV1AuthLogout
+      summary: Revoke the current user session
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LogoutRequest"
+      responses:
+        "200":
+          description: Current session revoked successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LogoutSuccessResponse"
+        "400":
+          description: Invalid request payload.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardResponse"
+        "401":
+          description: Access token or session is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardResponse"
+        "403":
+          description: Session does not belong to the authenticated actor.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardResponse"
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     LoginRequest:
       type: object
@@ -209,6 +251,36 @@ components:
       properties:
         data:
           $ref: "#/components/schemas/RefreshData"
+        meta:
+          type: "null"
+        error:
+          type: "null"
+    LogoutRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - refresh_token
+      properties:
+        refresh_token:
+          type: string
+          maxLength: 1024
+    LogoutData:
+      type: object
+      required:
+        - logged_out
+      properties:
+        logged_out:
+          type: boolean
+          const: true
+    LogoutSuccessResponse:
+      type: object
+      required:
+        - data
+        - meta
+        - error
+      properties:
+        data:
+          $ref: "#/components/schemas/LogoutData"
         meta:
           type: "null"
         error:

@@ -7,6 +7,7 @@ option go_package = "school-platform/packages/proto/gen/go/identity/v1;identityv
 service IdentityService {
   rpc Login(LoginRequest) returns (LoginResponse);
   rpc Refresh(RefreshRequest) returns (RefreshResponse);
+  rpc Logout(LogoutRequest) returns (LogoutResponse);
 }
 
 message LoginRequest {
@@ -41,3 +42,12 @@ message RefreshResponse {
   string token_type = 3;
   int64 expires_in = 4;
 }
+
+message LogoutRequest {
+  string access_token = 1;
+  string refresh_token = 2;
+  string request_id = 3;
+  string correlation_id = 4;
+}
+
+message LogoutResponse {}

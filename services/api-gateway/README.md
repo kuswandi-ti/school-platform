@@ -15,6 +15,7 @@ GET /metrics
 GET /api/v1/ping
 POST /api/v1/auth/login
 POST /api/v1/auth/refresh
+POST /api/v1/auth/logout
 ```
 
 `/api/v1/ping` returns the standard response envelope:

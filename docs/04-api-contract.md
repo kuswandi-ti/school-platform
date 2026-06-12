@@ -1042,6 +1042,16 @@ Refresh request:
 
 Refresh success data returns a new `access_token` and `refresh_token`. The submitted token is revoked atomically, its `last_used_at` is updated, and any later reuse returns `UNAUTHORIZED`.
 
+Logout request requires `Authorization: Bearer <access_token>` and the current refresh token:
+
+```json
+{
+  "refresh_token": "opaque-token"
+}
+```
+
+Logout verifies that the session belongs to the authenticated actor, revokes it, and returns `{"logged_out": true}` inside the standard response envelope. A refresh attempt using that token returns `UNAUTHORIZED`.
+
 Catatan:
 
 ```text

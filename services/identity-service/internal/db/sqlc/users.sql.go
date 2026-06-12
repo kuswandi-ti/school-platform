@@ -181,6 +181,30 @@ func (q *Queries) GetUserSessionByRefreshHash(ctx context.Context, refreshTokenH
 	return i, err
 }
 
+const revokeUserSession = `-- name: RevokeUserSession :one
+UPDATE user_sessions
+SET revoked_at = $3,
+    last_used_at = $3,
+    updated_at = $3
+WHERE refresh_token_hash = $1
+  AND user_id = $2
+  AND revoked_at IS NULL
+RETURNING id
+`
+
+type RevokeUserSessionParams struct {
+	RefreshTokenHash string             `json:"refresh_token_hash"`
+	UserID           uuid.UUID          `json:"user_id"`
+	RevokedAt        pgtype.Timestamptz `json:"revoked_at"`
+}
+
+func (q *Queries) RevokeUserSession(ctx context.Context, arg RevokeUserSessionParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, revokeUserSession, arg.RefreshTokenHash, arg.UserID, arg.RevokedAt)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
 const revokeUserSessionForRotation = `-- name: RevokeUserSessionForRotation :one
 UPDATE user_sessions
 SET revoked_at = $2,

@@ -333,6 +333,110 @@ func (x *RefreshResponse) GetExpiresIn() int64 {
 	return 0
 }
 
+type LogoutRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
+	RefreshToken  string                 `protobuf:"bytes,2,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
+	RequestId     string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	CorrelationId string                 `protobuf:"bytes,4,opt,name=correlation_id,json=correlationId,proto3" json:"correlation_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LogoutRequest) Reset() {
+	*x = LogoutRequest{}
+	mi := &file_identity_v1_identity_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LogoutRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LogoutRequest) ProtoMessage() {}
+
+func (x *LogoutRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_identity_v1_identity_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LogoutRequest.ProtoReflect.Descriptor instead.
+func (*LogoutRequest) Descriptor() ([]byte, []int) {
+	return file_identity_v1_identity_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *LogoutRequest) GetAccessToken() string {
+	if x != nil {
+		return x.AccessToken
+	}
+	return ""
+}
+
+func (x *LogoutRequest) GetRefreshToken() string {
+	if x != nil {
+		return x.RefreshToken
+	}
+	return ""
+}
+
+func (x *LogoutRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *LogoutRequest) GetCorrelationId() string {
+	if x != nil {
+		return x.CorrelationId
+	}
+	return ""
+}
+
+type LogoutResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LogoutResponse) Reset() {
+	*x = LogoutResponse{}
+	mi := &file_identity_v1_identity_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LogoutResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LogoutResponse) ProtoMessage() {}
+
+func (x *LogoutResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_identity_v1_identity_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LogoutResponse.ProtoReflect.Descriptor instead.
+func (*LogoutResponse) Descriptor() ([]byte, []int) {
+	return file_identity_v1_identity_proto_rawDescGZIP(), []int{5}
+}
+
 var File_identity_v1_identity_proto protoreflect.FileDescriptor
 
 const file_identity_v1_identity_proto_rawDesc = "" +
@@ -372,10 +476,18 @@ const file_identity_v1_identity_proto_rawDesc = "" +
 	"\n" +
 	"token_type\x18\x03 \x01(\tR\ttokenType\x12\x1d\n" +
 	"\n" +
-	"expires_in\x18\x04 \x01(\x03R\texpiresIn2\xd3\x01\n" +
+	"expires_in\x18\x04 \x01(\x03R\texpiresIn\"\x9d\x01\n" +
+	"\rLogoutRequest\x12!\n" +
+	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12#\n" +
+	"\rrefresh_token\x18\x02 \x01(\tR\frefreshToken\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x03 \x01(\tR\trequestId\x12%\n" +
+	"\x0ecorrelation_id\x18\x04 \x01(\tR\rcorrelationId\"\x10\n" +
+	"\x0eLogoutResponse2\xb4\x02\n" +
 	"\x0fIdentityService\x12\\\n" +
 	"\x05Login\x12(.schoolplatform.identity.v1.LoginRequest\x1a).schoolplatform.identity.v1.LoginResponse\x12b\n" +
-	"\aRefresh\x12*.schoolplatform.identity.v1.RefreshRequest\x1a+.schoolplatform.identity.v1.RefreshResponseB>Z<school-platform/packages/proto/gen/go/identity/v1;identityv1b\x06proto3"
+	"\aRefresh\x12*.schoolplatform.identity.v1.RefreshRequest\x1a+.schoolplatform.identity.v1.RefreshResponse\x12_\n" +
+	"\x06Logout\x12).schoolplatform.identity.v1.LogoutRequest\x1a*.schoolplatform.identity.v1.LogoutResponseB>Z<school-platform/packages/proto/gen/go/identity/v1;identityv1b\x06proto3"
 
 var (
 	file_identity_v1_identity_proto_rawDescOnce sync.Once
@@ -389,20 +501,24 @@ func file_identity_v1_identity_proto_rawDescGZIP() []byte {
 	return file_identity_v1_identity_proto_rawDescData
 }
 
-var file_identity_v1_identity_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_identity_v1_identity_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_identity_v1_identity_proto_goTypes = []any{
 	(*LoginRequest)(nil),    // 0: schoolplatform.identity.v1.LoginRequest
 	(*LoginResponse)(nil),   // 1: schoolplatform.identity.v1.LoginResponse
 	(*RefreshRequest)(nil),  // 2: schoolplatform.identity.v1.RefreshRequest
 	(*RefreshResponse)(nil), // 3: schoolplatform.identity.v1.RefreshResponse
+	(*LogoutRequest)(nil),   // 4: schoolplatform.identity.v1.LogoutRequest
+	(*LogoutResponse)(nil),  // 5: schoolplatform.identity.v1.LogoutResponse
 }
 var file_identity_v1_identity_proto_depIdxs = []int32{
 	0, // 0: schoolplatform.identity.v1.IdentityService.Login:input_type -> schoolplatform.identity.v1.LoginRequest
 	2, // 1: schoolplatform.identity.v1.IdentityService.Refresh:input_type -> schoolplatform.identity.v1.RefreshRequest
-	1, // 2: schoolplatform.identity.v1.IdentityService.Login:output_type -> schoolplatform.identity.v1.LoginResponse
-	3, // 3: schoolplatform.identity.v1.IdentityService.Refresh:output_type -> schoolplatform.identity.v1.RefreshResponse
-	2, // [2:4] is the sub-list for method output_type
-	0, // [0:2] is the sub-list for method input_type
+	4, // 2: schoolplatform.identity.v1.IdentityService.Logout:input_type -> schoolplatform.identity.v1.LogoutRequest
+	1, // 3: schoolplatform.identity.v1.IdentityService.Login:output_type -> schoolplatform.identity.v1.LoginResponse
+	3, // 4: schoolplatform.identity.v1.IdentityService.Refresh:output_type -> schoolplatform.identity.v1.RefreshResponse
+	5, // 5: schoolplatform.identity.v1.IdentityService.Logout:output_type -> schoolplatform.identity.v1.LogoutResponse
+	3, // [3:6] is the sub-list for method output_type
+	0, // [0:3] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -419,7 +535,7 @@ func file_identity_v1_identity_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_identity_v1_identity_proto_rawDesc), len(file_identity_v1_identity_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

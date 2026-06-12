@@ -32,6 +32,7 @@ func NewRouter(cfg config.Config, logger *slog.Logger, identityClient client.Ide
 		r.Get("/ping", PingHandler())
 		r.Post("/auth/login", LoginHandler(identityClient))
 		r.Post("/auth/refresh", RefreshHandler(identityClient))
+		r.Post("/auth/logout", LogoutHandler(identityClient))
 	})
 
 	return router

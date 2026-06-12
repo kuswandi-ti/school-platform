@@ -71,3 +71,13 @@ WHERE id = $1
   AND revoked_at IS NULL
   AND expires_at > $2
 RETURNING user_id, device_id;
+
+-- name: RevokeUserSession :one
+UPDATE user_sessions
+SET revoked_at = $3,
+    last_used_at = $3,
+    updated_at = $3
+WHERE refresh_token_hash = $1
+  AND user_id = $2
+  AND revoked_at IS NULL
+RETURNING id;

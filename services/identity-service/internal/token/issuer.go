@@ -79,6 +79,27 @@ func (i *Issuer) Issue(userID uuid.UUID) (Tokens, error) {
 	}, nil
 }
 
+func (i *Issuer) ValidateAccessToken(accessToken string) (uuid.UUID, error) {
+	claims := &jwt.RegisteredClaims{}
+	parsed, err := jwt.ParseWithClaims(accessToken, claims, func(parsed *jwt.Token) (any, error) {
+		if parsed.Method != jwt.SigningMethodEdDSA {
+			return nil, fmt.Errorf("unexpected access token signing method")
+		}
+		return i.privateKey.Public(), nil
+	}, jwt.WithIssuer(i.issuer), jwt.WithAudience(i.audience), jwt.WithExpirationRequired(), jwt.WithTimeFunc(i.now))
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("validate access token: %w", err)
+	}
+	if !parsed.Valid {
+		return uuid.Nil, fmt.Errorf("validate access token: token is invalid")
+	}
+	userID, err := uuid.Parse(claims.Subject)
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("parse access token subject: %w", err)
+	}
+	return userID, nil
+}
+
 func HashRefreshToken(refreshToken string) string {
 	refreshHash := sha256.Sum256([]byte(refreshToken))
 	return hex.EncodeToString(refreshHash[:])

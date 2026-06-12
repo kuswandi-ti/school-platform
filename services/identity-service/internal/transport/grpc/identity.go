@@ -16,10 +16,31 @@ type IdentityServer struct {
 	identityv1.UnimplementedIdentityServiceServer
 	login   *usecase.Login
 	refresh *usecase.Refresh
+	logout  *usecase.Logout
 }
 
-func NewIdentityServer(login *usecase.Login, refresh *usecase.Refresh) *IdentityServer {
-	return &IdentityServer{login: login, refresh: refresh}
+func NewIdentityServer(login *usecase.Login, refresh *usecase.Refresh, logout *usecase.Logout) *IdentityServer {
+	return &IdentityServer{login: login, refresh: refresh, logout: logout}
+}
+
+func (s *IdentityServer) Logout(ctx context.Context, request *identityv1.LogoutRequest) (*identityv1.LogoutResponse, error) {
+	if request.GetAccessToken() == "" || request.GetRefreshToken() == "" {
+		return nil, status.Error(codes.InvalidArgument, "access token and refresh token are required")
+	}
+	if err := s.logout.Execute(ctx, usecase.LogoutInput{
+		AccessToken:  request.GetAccessToken(),
+		RefreshToken: request.GetRefreshToken(),
+	}); err != nil {
+		switch {
+		case errors.Is(err, usecase.ErrInvalidAccessToken), errors.Is(err, usecase.ErrInvalidRefreshToken):
+			return nil, status.Error(codes.Unauthenticated, "invalid session credentials")
+		case errors.Is(err, usecase.ErrSessionForbidden):
+			return nil, status.Error(codes.PermissionDenied, "session does not belong to actor")
+		default:
+			return nil, status.Error(codes.Internal, "logout failed")
+		}
+	}
+	return &identityv1.LogoutResponse{}, nil
 }
 
 func (s *IdentityServer) Refresh(ctx context.Context, request *identityv1.RefreshRequest) (*identityv1.RefreshResponse, error) {

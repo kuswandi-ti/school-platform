@@ -70,6 +70,10 @@ func (s *identityClientStub) Refresh(_ context.Context, _ *identityv1.RefreshReq
 	return nil, status.Error(codes.Unimplemented, "not implemented")
 }
 
+func (s *identityClientStub) Logout(_ context.Context, _ *identityv1.LogoutRequest, _ ...grpc.CallOption) (*identityv1.LogoutResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "not implemented")
+}
+
 func performLogin(t *testing.T, client *identityClientStub, body string) *httptest.ResponseRecorder {
 	t.Helper()
 	request := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", bytes.NewBufferString(body))

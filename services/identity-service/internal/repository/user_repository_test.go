@@ -2,6 +2,8 @@ package repository_test
 
 import (
 	"context"
+	"crypto/ed25519"
+	"crypto/rand"
 	"database/sql"
 	"fmt"
 	"os"
@@ -19,6 +21,8 @@ import (
 
 	"school-platform/services/identity-service/internal/password"
 	"school-platform/services/identity-service/internal/repository"
+	"school-platform/services/identity-service/internal/token"
+	"school-platform/services/identity-service/internal/usecase"
 )
 
 func TestUserRepository(t *testing.T) {
@@ -183,6 +187,42 @@ func TestSessionRepositoryRotatesTokenOnce(t *testing.T) {
 	var activeSessions int
 	require.NoError(t, pool.QueryRow(ctx, `SELECT COUNT(*) FROM user_sessions WHERE user_id = $1 AND revoked_at IS NULL`, userID).Scan(&activeSessions))
 	require.Equal(t, 1, activeSessions)
+}
+
+func TestRefreshAfterSessionRevocationIsRejected(t *testing.T) {
+	users, pool, ctx := newTestRepository(t)
+	passwordHash, err := password.Hash("repository test password")
+	require.NoError(t, err)
+	userID := uuid.New()
+	_, err = users.CreateUser(ctx, repository.CreateUserParams{
+		ID: userID, Email: "logout@example.com", PasswordHash: passwordHash,
+		DisplayName: "Logout User", Status: "active",
+	})
+	require.NoError(t, err)
+
+	_, privateKey, err := ed25519.GenerateKey(rand.Reader)
+	require.NoError(t, err)
+	issuer, err := token.NewIssuer(privateKey, "identity-test", "school-platform-test", 15*time.Minute, 24*time.Hour)
+	require.NoError(t, err)
+	issued, err := issuer.Issue(userID)
+	require.NoError(t, err)
+
+	sessions := repository.NewSessionRepository(pool)
+	err = sessions.CreateSession(ctx, repository.CreateSessionParams{
+		ID: uuid.New(), UserID: userID, RefreshTokenHash: issued.RefreshTokenHash,
+		ExpiresAt: issued.RefreshExpiresAt,
+	})
+	require.NoError(t, err)
+	err = sessions.RevokeSession(ctx, repository.RevokeSessionParams{
+		RefreshTokenHash: issued.RefreshTokenHash,
+		UserID:           userID,
+		RevokedAt:        time.Now().UTC(),
+	})
+	require.NoError(t, err)
+
+	refresh := usecase.NewRefresh(users, sessions, issuer)
+	_, err = refresh.Execute(ctx, usecase.RefreshInput{RefreshToken: issued.RefreshToken})
+	require.ErrorIs(t, err, usecase.ErrRefreshTokenReused)
 }
 
 func newTestRepository(t *testing.T) (*repository.UserRepository, *pgxpool.Pool, context.Context) {

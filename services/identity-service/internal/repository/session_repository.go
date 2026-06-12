@@ -48,6 +48,12 @@ type RotateSessionParams struct {
 	NewSessionExpiresAt time.Time
 }
 
+type RevokeSessionParams struct {
+	RefreshTokenHash string
+	UserID           uuid.UUID
+	RevokedAt        time.Time
+}
+
 func NewSessionRepository(db dbsqlc.DBTX) *SessionRepository {
 	return &SessionRepository{db: db, queries: dbsqlc.New(db)}
 }
@@ -122,6 +128,18 @@ func (r *SessionRepository) RotateSession(ctx context.Context, params RotateSess
 	}
 	if err := tx.Commit(ctx); err != nil {
 		return fmt.Errorf("commit session rotation: %w", err)
+	}
+	return nil
+}
+
+func (r *SessionRepository) RevokeSession(ctx context.Context, params RevokeSessionParams) error {
+	_, err := r.queries.RevokeUserSession(ctx, dbsqlc.RevokeUserSessionParams{
+		RefreshTokenHash: params.RefreshTokenHash,
+		UserID:           params.UserID,
+		RevokedAt:        pgtype.Timestamptz{Time: params.RevokedAt, Valid: true},
+	})
+	if err != nil {
+		return fmt.Errorf("revoke user session: %w", err)
 	}
 	return nil
 }

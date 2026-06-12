@@ -34,6 +34,19 @@ func TestIssuerCreatesVerifiableAccessAndOpaqueRefreshTokens(t *testing.T) {
 	claims, ok := parsed.Claims.(*jwt.RegisteredClaims)
 	require.True(t, ok)
 	require.Equal(t, userID.String(), claims.Subject)
+	validatedUserID, err := issuer.ValidateAccessToken(tokens.AccessToken)
+	require.NoError(t, err)
+	require.Equal(t, userID, validatedUserID)
+}
+
+func TestIssuerRejectsInvalidAccessToken(t *testing.T) {
+	_, privateKey, err := ed25519.GenerateKey(rand.Reader)
+	require.NoError(t, err)
+	issuer, err := NewIssuer(privateKey, "identity-test", "school-platform-test", time.Minute, time.Hour)
+	require.NoError(t, err)
+
+	_, err = issuer.ValidateAccessToken("not-a-jwt")
+	require.Error(t, err)
 }
 
 func TestIssuerUsesUniqueRefreshTokens(t *testing.T) {
