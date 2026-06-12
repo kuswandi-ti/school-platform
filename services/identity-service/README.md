@@ -20,3 +20,13 @@ The integration test creates and removes an isolated temporary schema in the con
 ```bash
 IDENTITY_TEST_DATABASE_URL="$IDENTITY_DATABASE_URL" go test ./...
 ```
+
+## SQLC
+
+User persistence queries are defined under `internal/db/queries` and generated into `internal/db/sqlc`.
+
+```bash
+sqlc generate
+```
+
+Repository integration tests use the same `IDENTITY_TEST_DATABASE_URL` and create isolated temporary schemas.
