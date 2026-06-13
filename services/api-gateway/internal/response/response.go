@@ -23,6 +23,7 @@ const (
 	CodeValidationError    = "VALIDATION_ERROR"
 	CodeUnauthorized       = "UNAUTHORIZED"
 	CodeForbidden          = "FORBIDDEN"
+	CodeConflict           = "CONFLICT"
 	CodeServiceUnavailable = "SERVICE_UNAVAILABLE"
 )
 

@@ -135,6 +135,11 @@ func ActorContextFromContext(ctx context.Context) (ActorContext, bool) {
 	return value, ok
 }
 
+// WithActorContext attaches a validated actor to an internal request context.
+func WithActorContext(ctx context.Context, actor ActorContext) context.Context {
+	return context.WithValue(ctx, actorContextContextKey, actor)
+}
+
 func AccessTokenFromContext(ctx context.Context) (string, bool) {
 	value, ok := ctx.Value(accessTokenContextKey).(string)
 	return value, ok

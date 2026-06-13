@@ -12,7 +12,7 @@ import (
 	"school-platform/services/api-gateway/internal/response"
 )
 
-func NewRouter(cfg config.Config, logger *slog.Logger, identityClient client.Identity, authValidator *middleware.JWTValidator) http.Handler {
+func NewRouter(cfg config.Config, logger *slog.Logger, identityClient client.Identity, schoolCoreClient client.SchoolCore, authValidator *middleware.JWTValidator) http.Handler {
 	router := chi.NewRouter()
 
 	router.Use(middleware.RequestContext)
@@ -33,6 +33,13 @@ func NewRouter(cfg config.Config, logger *slog.Logger, identityClient client.Ide
 		r.Post("/auth/login", LoginHandler(identityClient))
 		r.Post("/auth/refresh", RefreshHandler(identityClient))
 		r.With(middleware.RequireAuth(authValidator)).Post("/auth/logout", LogoutHandler(identityClient))
+		r.Group(func(protected chi.Router) {
+			protected.Use(middleware.RequireAuth(authValidator))
+			protected.Get("/foundations/current", GetCurrentFoundationHandler(schoolCoreClient))
+			protected.Get("/schools", ListSchoolsHandler(schoolCoreClient))
+			protected.Post("/schools", CreateSchoolHandler(schoolCoreClient))
+			protected.Patch("/schools/{school_id}", UpdateSchoolHandler(schoolCoreClient))
+		})
 	})
 
 	return router

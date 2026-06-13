@@ -1,5 +1,5 @@
 # School Core Proto v1
 
-Placeholder for `schoolplatform.schoolcore.v1`.
+Contracts for `schoolplatform.schoolcore.v1`.
 
-Future contracts may cover foundation, school, academic year, semester, student, guardian, teacher, class, and assignment operations.
+`SchoolCoreService` currently exposes current-foundation lookup and foundation-scoped school list, create, and update operations.

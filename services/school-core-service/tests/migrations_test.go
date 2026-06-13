@@ -50,7 +50,7 @@ func TestSchoolCoreMigrationsUpAndDown(t *testing.T) {
 
 	expectedTables := []string{
 		"academic_years", "audit_logs", "classes", "foundations", "grade_levels",
-		"guardians", "homeroom_assignments", "rooms", "schools", "semesters",
+		"guardians", "homeroom_assignments", "outbox_events", "rooms", "schools", "semesters",
 		"student_class_assignments", "student_guardians", "students",
 		"teacher_assignments", "teachers",
 	}
@@ -69,6 +69,7 @@ func TestSchoolCoreMigrationsUpAndDown(t *testing.T) {
 		"guardians_email_idx",
 		"guardians_phone_idx",
 		"homeroom_assignments_one_active_per_class_idx",
+		"outbox_events_pending_idx",
 		"schools_foundation_id_idx",
 		"student_class_assignments_class_id_idx",
 		"student_class_assignments_one_active_idx",
@@ -119,7 +120,7 @@ func assertTables(t *testing.T, ctx context.Context, db *sql.DB, expected []stri
 func assertTenantColumns(t *testing.T, ctx context.Context, db *sql.DB, tables []string) {
 	t.Helper()
 	for _, tableName := range tables {
-		if tableName == "foundations" {
+		if tableName == "foundations" || tableName == "outbox_events" {
 			continue
 		}
 		var count int
