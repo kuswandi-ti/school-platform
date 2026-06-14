@@ -13,6 +13,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	identityv1 "school-platform/packages/proto/gen/go/identity/v1"
+	schoolcorev1 "school-platform/packages/proto/gen/go/schoolcore/v1"
 
 	"school-platform/services/api-gateway/internal/config"
 	"school-platform/services/api-gateway/internal/middleware"
@@ -40,6 +41,11 @@ func (a *App) Run() error {
 		return err
 	}
 	defer identityConnection.Close()
+	schoolCoreConnection, err := grpc.NewClient(a.config.GRPCTargets.SchoolCore, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return err
+	}
+	defer schoolCoreConnection.Close()
 
 	publicKey, err := middleware.LoadPublicKey(a.config.JWTPublicKeyPath)
 	if err != nil {
@@ -50,7 +56,7 @@ func (a *App) Run() error {
 		return err
 	}
 
-	router := httptransport.NewRouter(a.config, a.logger, identityv1.NewIdentityServiceClient(identityConnection), authValidator)
+	router := httptransport.NewRouter(a.config, a.logger, identityv1.NewIdentityServiceClient(identityConnection), schoolcorev1.NewSchoolCoreServiceClient(schoolCoreConnection), authValidator)
 
 	server := &http.Server{
 		Addr:              a.config.HTTPAddr,

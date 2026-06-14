@@ -1,0 +1,90 @@
+syntax = "proto3";
+
+package schoolplatform.schoolcore.v1;
+
+option go_package = "school-platform/packages/proto/gen/go/schoolcore/v1;schoolcorev1";
+
+service SchoolCoreService {
+  rpc GetCurrentFoundation(GetCurrentFoundationRequest) returns (GetCurrentFoundationResponse);
+  rpc ListSchools(ListSchoolsRequest) returns (ListSchoolsResponse);
+  rpc CreateSchool(CreateSchoolRequest) returns (CreateSchoolResponse);
+  rpc UpdateSchool(UpdateSchoolRequest) returns (UpdateSchoolResponse);
+}
+
+message ActorContext {
+  string user_id = 1;
+  string foundation_id = 2;
+  string school_id = 3;
+  repeated string roles = 4;
+  repeated string permissions = 5;
+  string request_id = 6;
+  string correlation_id = 7;
+  string ip_address = 8;
+  string user_agent = 9;
+}
+
+message Foundation {
+  string id = 1;
+  string foundation_code = 2;
+  string name = 3;
+  string legal_name = 4;
+  string address = 5;
+  string phone = 6;
+  string email = 7;
+  string logo_file_id = 8;
+  string timezone = 9;
+  string status = 10;
+  string created_at = 11;
+  string updated_at = 12;
+}
+
+message School {
+  string id = 1;
+  string foundation_id = 2;
+  string school_code = 3;
+  string name = 4;
+  string school_level = 5;
+  string npsn = 6;
+  string address = 7;
+  string phone = 8;
+  string email = 9;
+  string logo_file_id = 10;
+  string status = 11;
+  string created_at = 12;
+  string updated_at = 13;
+}
+
+message GetCurrentFoundationRequest { ActorContext actor = 1; }
+message GetCurrentFoundationResponse { Foundation foundation = 1; }
+
+message ListSchoolsRequest { ActorContext actor = 1; }
+message ListSchoolsResponse { repeated School schools = 1; }
+
+message CreateSchoolRequest {
+  ActorContext actor = 1;
+  string school_code = 2;
+  string name = 3;
+  string school_level = 4;
+  optional string npsn = 5;
+  optional string address = 6;
+  optional string phone = 7;
+  optional string email = 8;
+  optional string logo_file_id = 9;
+  string status = 10;
+}
+message CreateSchoolResponse { School school = 1; }
+
+message UpdateSchoolRequest {
+  ActorContext actor = 1;
+  string school_id = 2;
+  optional string school_code = 3;
+  optional string name = 4;
+  optional string school_level = 5;
+  optional string npsn = 6;
+  optional string address = 7;
+  optional string phone = 8;
+  optional string email = 9;
+  optional string logo_file_id = 10;
+  optional string status = 11;
+}
+message UpdateSchoolResponse { School school = 1; }

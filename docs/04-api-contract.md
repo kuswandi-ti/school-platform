@@ -1067,6 +1067,8 @@ Catatan:
 ```http
 GET /api/v1/foundations/current
 GET /api/v1/schools
+POST /api/v1/schools
+PATCH /api/v1/schools/{school_id}
 GET /api/v1/schools/{school_id}
 GET /api/v1/academic-years
 GET /api/v1/semesters

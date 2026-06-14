@@ -153,6 +153,112 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/StandardResponse"
+  /api/v1/foundations/current:
+    get:
+      operationId: getCurrentFoundation
+      summary: Get the authenticated Admin Yayasan foundation
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current foundation.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardResponse"
+        "403":
+          description: Actor is not an authorized Admin Yayasan.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardResponse"
+  /api/v1/schools:
+    get:
+      operationId: listSchools
+      summary: List schools in the actor foundation
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Foundation-scoped school list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardResponse"
+        "403":
+          description: Actor is not authorized.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardResponse"
+    post:
+      operationId: createSchool
+      summary: Create a school in the actor foundation
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSchoolRequest"
+      responses:
+        "201":
+          description: School created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardResponse"
+        "409":
+          description: School code or NPSN already exists.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardResponse"
+        "422":
+          description: Invalid school data.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardResponse"
+  /api/v1/schools/{school_id}:
+    patch:
+      operationId: updateSchool
+      summary: Update a school in the actor foundation
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: school_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateSchoolRequest"
+      responses:
+        "200":
+          description: School updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardResponse"
+        "404":
+          description: School is missing or outside the actor foundation.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardResponse"
+        "422":
+          description: Invalid school data.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StandardResponse"
 components:
   securitySchemes:
     bearerAuth:
@@ -285,6 +391,38 @@ components:
           type: "null"
         error:
           type: "null"
+    CreateSchoolRequest:
+      type: object
+      additionalProperties: false
+      required: [school_code, name, school_level, status]
+      properties:
+        school_code: { type: string, maxLength: 50 }
+        name: { type: string, maxLength: 150 }
+        school_level:
+          type: string
+          enum: [kindergarten, elementary, junior_high, senior_high]
+        npsn: { type: string, maxLength: 50 }
+        address: { type: string, maxLength: 4000 }
+        phone: { type: string, maxLength: 50 }
+        email: { type: string, format: email, maxLength: 255 }
+        logo_file_id: { type: string, format: uuid }
+        status: { type: string, enum: [active, inactive] }
+    UpdateSchoolRequest:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        school_code: { type: string, maxLength: 50 }
+        name: { type: string, maxLength: 150 }
+        school_level:
+          type: string
+          enum: [kindergarten, elementary, junior_high, senior_high]
+        npsn: { type: string, maxLength: 50 }
+        address: { type: string, maxLength: 4000 }
+        phone: { type: string, maxLength: 50 }
+        email: { type: string, format: email, maxLength: 255 }
+        logo_file_id: { type: string, format: uuid }
+        status: { type: string, enum: [active, inactive] }
     StandardResponse:
       type: object
       required:
